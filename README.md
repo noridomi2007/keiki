@@ -1,1 +1,6 @@
-"# keiki" 
+Keiki là phần kế toán bỏ túi đa nền tảng kết hợp với trợ lí AI (sử dụng điện thoại và máy tính), giúp hộ kinh doanh ghi sổ kế toán tự nhiên chỉ bằng thao tác chụp ảnh hóa đơn, dán màn hình chuyển khoản hoặc nói một câu. 
+1.	BÀI TOÁN GIẢI QUYẾT: Từ năm 2026, các hộ kinh doanh phải ghi sổ kế toán theo Thông tư 152/2025/TT-BTC nhưng đa số không đủ chi phí thuê kế toán riêng, ngại dùng phần mềm phức tạp và dễ thất lạc hoặc ghi trùng chứng từ (giữa hóa đơn giấy và ảnh chuyển khoản). Keiri dùng AI Agent để tự động đọc hiểu đa phương thức, phân loại thu chi/thuế, đối chiếu phát hiện giao dịch trùng lặp hoặc bất thường, chủ động hỏi lại khi thông tin mơ hồ và xuất sổ đúng chuẩn quy định. 
+2.	ĐỐI TƯỢNG HƯỚNG ĐẾN: Các hộ kinh doanh cá thể, tiểu thương chợ truyền thống, chủ quán ăn, tạp hóa, cửa hàng bán lẻ và dịch vụ tại Đà Nẵng cũng như trên cả nước (đặc biệt là người lớn tuổi, bận rộn, không rành công nghệ và nghiệp vụ kế toán).
+3.	TIỀM NĂNG ĐÓNG GÓP CHO ĐỊA PHƯƠNG & ĐẤT NƯỚC:
+•	Tại Đà Nẵng & Miền Trung: Hỗ trợ hàng chục nghìn tiểu thương và hộ kinh doanh dịch vụ - du lịch tuân thủ quy định mới mà không tốn sức, xóa bỏ rào cản công nghệ nhờ khả năng nhận diện giọng nói phương ngữ miền Trung, thúc đẩy mục tiêu kinh tế số thực chất tại địa phương.
+•	Trên toàn quốc: Giúp hơn 5 triệu hộ kinh doanh tại Việt Nam tiết kiệm hàng giờ cộng sổ mỗi ngày, giảm tải áp lực hướng dẫn cho cơ quan thuế, đồng thời tạo lập hệ thống sổ sách minh bạch giúp tiểu thương dễ dàng tiếp cận nguồn vốn vay ngân hàng chính thống.
