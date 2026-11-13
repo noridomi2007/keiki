@@ -24,16 +24,17 @@ void main() {
   vec2 p = vec2((st.x - 0.5) * aspect, st.y - 0.5);
   vec2 m = vec2((u_mouse.x - 0.5) * aspect, (1.0 - u_mouse.y) - 0.5);
 
-  float t = u_time * 0.28;
-  float waveA = sin(p.x * 3.1 + t + cos(p.y * 2.3 - t * 0.7) * 0.8);
-  float waveB = cos(p.y * 4.2 - t * 0.8 + sin(p.x * 2.0 + t * 0.5) * 0.65);
+  float t = u_time * 0.34;
+  float waveA = sin(p.x * 3.1 + t + cos(p.y * 2.3 - t * 0.7) * 0.85);
+  float waveB = cos(p.y * 4.2 - t * 0.8 + sin(p.x * 2.0 + t * 0.5) * 0.7);
   float distMouse = length(p - m);
-  float pointerRipple = exp(-distMouse * 3.2) * 0.45;
+  float pointerRipple = exp(-distMouse * 2.7) * 0.58
+                      + sin(distMouse * 15.0 - u_time * 2.4) * exp(-distMouse * 3.3) * 0.36;
 
   float field = (waveA * 0.5 + waveB * 0.5) + pointerRipple;
 
   /* Crisp ledger contour lines */
-  float contour = smoothstep(0.06, 0.0, abs(fract(field * 3.0) - 0.5));
+  float contour = smoothstep(0.068, 0.0, abs(fract(field * 3.1) - 0.5));
   float softGlow = clamp((field + 1.0) * 0.5, 0.0, 1.0);
 
   vec3 paper = vec3(0.9647, 0.9725, 0.9843);
@@ -41,13 +42,14 @@ void main() {
   vec3 emerald = vec3(0.0431, 0.4314, 0.3294);
 
   /* Mask strength softly toward right specimen and top corner, fade cleanly to #F6F8FB at edges */
-  float edgeFade = smoothstep(0.0, 0.18, st.x) * smoothstep(1.0, 0.82, st.x)
-                 * smoothstep(0.0, 0.22, st.y) * smoothstep(1.0, 0.86, st.y);
+  float edgeFade = smoothstep(0.0, 0.14, st.x) * smoothstep(1.0, 0.86, st.x)
+                 * smoothstep(0.0, 0.16, st.y) * smoothstep(1.0, 0.88, st.y);
 
-  vec3 ink = mix(indigo, emerald, smoothstep(0.2, 0.85, st.x) * 0.38);
-  float alpha = (contour * 0.065 + softGlow * 0.045 + pointerRipple * 0.08) * edgeFade;
+  vec3 ink = mix(indigo, emerald, smoothstep(0.18, 0.85, st.x) * 0.48);
+  float leftSafety = mix(0.65, 1.0, smoothstep(0.08, 0.62, st.x));
+  float alpha = (contour * 0.055 + softGlow * 0.032 + abs(pointerRipple) * 0.055) * edgeFade * leftSafety;
 
-  vec3 col = mix(paper, ink, clamp(alpha, 0.0, 0.16));
+  vec3 col = mix(paper, ink, clamp(alpha, 0.0, 0.105));
   gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -101,6 +103,7 @@ export function HeroShaderCanvas() {
       antialias: false,
       depth: false,
       stencil: false,
+      preserveDrawingBuffer: true,
       powerPreference: 'low-power',
     });
     if (!gl) {
@@ -220,9 +223,18 @@ export function HeroShaderCanvas() {
       }
     };
 
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && inViewport && !pausedRef.current) {
+        lastStamp = performance.now();
+        window.cancelAnimationFrame(rafId);
+        rafId = window.requestAnimationFrame(drawFrame);
+      }
+    };
+
     observer.observe(container);
     window.addEventListener('resize', resize);
     window.addEventListener('pointermove', onPointerMove, { passive: true });
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       resumeLoopRef.current = null;
@@ -230,6 +242,7 @@ export function HeroShaderCanvas() {
       observer.disconnect();
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('visibilitychange', onVisibility);
       gl.deleteBuffer(buffer);
       gl.deleteProgram(program);
       gl.deleteShader(vs);
@@ -247,17 +260,17 @@ export function HeroShaderCanvas() {
       aria-hidden={false}
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      <canvas ref={canvasRef} className="block h-full w-full" />
+      <canvas ref={canvasRef} aria-hidden="true" className="block h-full w-full" />
       {/* Bottom feather fade seamlessly into #F6F8FB canvas */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-[#F6F8FB]" />
 
-      {/* Explicit pause control required for motion accessibility */}
+      {/* Explicit pause control required for motion accessibility — pinned top-right clear of bottom registration bar */}
       <button
         type="button"
         onClick={() => setPaused((p) => !p)}
         aria-label={paused ? 'Chạy chuyển động nền Hero' : 'Tạm dừng chuyển động nền Hero'}
         title={paused ? 'Chạy chuyển động nền' : 'Tạm dừng chuyển động nền'}
-        className="pointer-events-auto absolute right-4 bottom-3 z-20 hidden items-center gap-1.5 rounded-full border border-border bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#475569] shadow-xs transition hover:border-[#2E2396]/40 hover:text-[#111625] sm:inline-flex"
+        className="pointer-events-auto absolute top-3 right-4 z-20 hidden items-center gap-1.5 rounded-full border border-border bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#475569] shadow-xs transition hover:border-[#2E2396]/40 hover:text-[#111625] sm:inline-flex"
       >
         <AppIcon name={paused ? 'play_arrow' : 'pause'} className="text-xs text-[#2E2396]" />
         <span>{paused ? 'Chạy nền' : 'Dừng nền'}</span>

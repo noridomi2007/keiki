@@ -4,6 +4,7 @@ import { AppIcon } from '@/components/AppIcon';
 
 export interface FloatingNavItem {
   id: string;
+  roman?: string;
   label: string;
 }
 
@@ -93,7 +94,12 @@ export function FloatingNavPill({ items, onNavigate, onStartDemo }: FloatingNavP
                       className="absolute inset-0 rounded-full bg-white/15"
                     />
                   )}
-                  <span className="relative z-10 whitespace-nowrap">{item.label}</span>
+                  <span className="relative z-10 inline-flex items-center gap-1.5 whitespace-nowrap">
+                    {item.roman && (
+                      <span className="font-mono text-xs text-indigo-300">{item.roman}.</span>
+                    )}
+                    <span>{item.label}</span>
+                  </span>
                 </button>
               );
             })}

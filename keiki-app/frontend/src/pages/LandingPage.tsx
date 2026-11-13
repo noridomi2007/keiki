@@ -1,5 +1,13 @@
-import { useEffect, useState } from 'react';
-import { AnimatePresence, MotionConfig, motion } from 'motion/react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  AnimatePresence,
+  MotionConfig,
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'motion/react';
 import { AppIcon } from '@/components/AppIcon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +27,16 @@ import { AuthPanel } from '../components/AuthPanel';
 import { FloatingNavPill } from '../components/FloatingNavPill';
 import { HeroShaderCanvas } from '../components/HeroShaderCanvas';
 import { KeikiMark } from '../components/KeikiMark';
+import { OdometerNumber } from '../components/OdometerNumber';
+import {
+  MaskedLine,
+  ScrollChapterRail,
+  ScrollProgressBar,
+  ScrollReveal,
+  type ChapterItem,
+} from '../components/ScrollChoreography';
 import { Stamp } from '../components/Stamp';
+import { StepwiseTransform } from '../components/StepwiseTransform';
 import { useAnimatedNumber, useReveal } from '../hooks/useRevealAndCounter';
 import { vi } from '../i18n/vi';
 
@@ -46,50 +63,50 @@ const SHEET_SPECS: SheetSpec[] = [
   {
     code: 'S1-HKD',
     title: 'Sổ chi tiết Doanh thu bán hàng hóa, dịch vụ',
-    subtitle: 'Tự động tách doanh thu theo 4 nhóm ngành thuế GTGT + TNCN tại Thông tư 152/2025/TT-BTC.',
+    subtitle: 'Chia sẵn tiền bán hàng theo đúng 4 nhóm thuế suất GTGT + TNCN tại Thông tư 152/2025/TT-BTC.',
     columns: ['Ngày chứng từ', 'Diễn giải giao dịch', 'Nhóm ngành TT152', 'Thuế suất', 'Thành tiền VND'],
     rows: [
       ['12/11/2026', 'Bán lẻ tại quầy (20 tô mì Quảng + 12 trà đá)', 'Nhóm 2: Dịch vụ ăn uống', '4.5%', '+820.000 đ'],
       ['11/11/2026', 'Hợp đồng thiết kế in ấn (Chuyển khoản)', 'Nhóm 2: Dịch vụ không bao thầu NVL', '7.0%', '+4.200.000 đ'],
       ['10/11/2026', 'Xuất bán sỉ cà phê hạt đóng gói', 'Nhóm 1: Phân phối cung cấp hàng hóa', '1.5%', '+3.650.000 đ'],
     ],
-    summary: 'Cộng kỳ đối soát: 8.670.000 đ • Thuế tạm tính khớp từng nhóm ngành',
+    summary: 'Cộng doanh thu kỳ này: 8.670.000 đ • Thuế tạm tính khớp từng nhóm hàng',
   },
   {
     code: 'S2-HKD',
     title: 'Sổ chi tiết Vật liệu, dụng cụ, sản phẩm, hàng hóa',
-    subtitle: 'Theo dõi đơn giá nhập từng mặt hàng và cảnh báo ngay khi giá nhập vượt +30% trung vị lịch sử.',
-    columns: ['Ngày nhập', 'Nhà cung cấp & Mặt hàng', 'Số lượng', 'Đơn giá', 'Kiểm toán giá'],
+    subtitle: 'Theo dõi giá nhập từng món hàng và nhắc ngay khi giá bỗng cao hơn 30% so với những lần trước.',
+    columns: ['Ngày nhập', 'Nhà cung cấp & Mặt hàng', 'Số lượng', 'Đơn giá', 'Kiểm tra giá'],
     rows: [
-      ['12/11/2026', 'Cà phê rang xay Minh Phát', '5 kg', '180.000 đ', 'Khớp trung vị (0%)'],
-      ['09/11/2026', 'Bao bì giấy kraft 250g', '500 cái', '2.100 đ', 'Khớp trung vị (-2%)'],
+      ['12/11/2026', 'Cà phê rang xay Minh Phát', '5 kg', '180.000 đ', 'Bằng giá tháng trước (0%)'],
+      ['09/11/2026', 'Bao bì giấy kraft 250g', '500 cái', '2.100 đ', 'Khớp giá cũ (-2%)'],
       ['08/11/2026', 'Sữa đặc nguyên kem thùng 48', '2 thùng', '960.000 đ', 'Đã đính kèm ảnh gốc'],
     ],
-    summary: 'Đối chiếu hóa đơn giấy ↔ chuyển khoản VietQR không ghi trùng chi phí',
+    summary: 'Đối chiếu hóa đơn giấy với ảnh chuyển khoản VietQR để không ghi trùng tiền nhập hàng',
   },
   {
     code: 'S3-HKD',
     title: 'Sổ chi phí sản xuất, kinh doanh',
-    subtitle: 'Ghi nhận điện nước, mặt bằng, vận chuyển và chi phí vận hành trực tiếp phục vụ kinh doanh.',
+    subtitle: 'Ghi gọn tiền điện nước, thuê mặt bằng, giao hàng và các khoản chi vận hành quán mỗi tháng.',
     columns: ['Ngày chi', 'Nội dung chi phí', 'Thanh toán', 'Chứng từ gốc', 'Số tiền VND'],
     rows: [
       ['10/11/2026', 'Tiền điện, nước & Internet cửa hàng T11', 'Chuyển khoản', 'Ảnh hóa đơn EVN', '-1.250.000 đ'],
       ['05/11/2026', 'Thuê mặt bằng kinh doanh tháng 11/2026', 'Chuyển khoản', 'Biên lai VietQR', '-8.500.000 đ'],
       ['03/11/2026', 'Phí giao hàng nội thành đơn sỉ', 'Tiền mặt', 'Ghi âm + Phiếu thu', '-185.000 đ'],
     ],
-    summary: 'Tất cả ô văn bản xuất Excel được làm sạch tiền tố công thức (=, +, -, @)',
+    summary: 'Tất cả nội dung xuất Excel đều được làm sạch để bảng tính không bị lỗi định dạng',
   },
   {
     code: 'VAY-VON',
-    title: 'Sheet Hồ sơ Tín dụng & Minh bạch Dòng tiền',
-    subtitle: 'Tổng hợp tỷ lệ bút toán có chứng từ gốc và đối chiếu kép cho ngân hàng chính thống.',
-    columns: ['Chỉ tiêu đánh giá', 'Giá trị ghi nhận', 'Tỷ lệ xác thực', 'Mục đích ngân hàng'],
+    title: 'Bảng tổng hợp chứng từ minh bạch vay vốn ngân hàng',
+    subtitle: 'Tổng hợp tỷ lệ khoản thu chi có ảnh hóa đơn hoặc sao kê đi kèm để ngân hàng dễ thẩm định hạn mức.',
+    columns: ['Chỉ tiêu đánh giá', 'Giá trị ghi nhận', 'Tỷ lệ xác thực', 'Ý nghĩa với ngân hàng'],
     rows: [
-      ['Bút toán có chứng từ ảnh / thoại gốc', '42 / 44 bút toán', '95%', 'Chứng minh thu nhập thực'],
-      ['Bút toán đối chiếu kép (HĐ + VietQR)', '18 bút toán', '100% khớp mã FT', 'Loại trừ rủi ro khai khống'],
-      ['Dòng tiền ròng sau chi phí & thuế', 'Vận hành ổn định', 'Khớp sao kê', 'Cơ sở cấp hạn mức tín dụng'],
+      ['Khoản thu chi có ảnh / ghi âm gốc', '42 / 44 khoản', '95%', 'Chứng minh quán bán thật, thu thật'],
+      ['Khoản đã ghép hóa đơn + VietQR', '18 khoản', '100% khớp mã FT', 'Không khai trùng chi phí'],
+      ['Tiền lời thực sau chi phí & thuế', 'Vận hành ổn định', 'Khớp sao kê', 'Căn cứ xét hạn mức vay ưu đãi'],
     ],
-    summary: 'Xuất trực tiếp tệp .xlsx hoặc gói .zip đính kèm toàn bộ ảnh chứng từ đối soát',
+    summary: 'Tải về trọn bộ file .xlsx kèm gói .zip lưu ảnh gốc từng hóa đơn',
   },
 ];
 
@@ -100,10 +117,19 @@ const HERO_PARSE_FEED = [
 ];
 
 const FLOATING_NAV_ITEMS = [
-  { id: 'thu-nghiem', label: 'Thử kiểm toán' },
-  { id: 'quy-trinh', label: 'AI + Python' },
-  { id: 'so-tt152', label: 'Bộ 4 sổ TT152' },
-  { id: 'dang-nhap', label: 'Đăng nhập' },
+  { id: 'hanh-trinh', roman: 'I', label: 'Hành trình' },
+  { id: 'thu-nghiem', roman: 'II', label: 'Thử bắt lỗi' },
+  { id: 'quy-trinh', roman: 'III', label: 'Cách hoạt động' },
+  { id: 'so-tt152', roman: 'IV', label: 'Bộ 4 sổ' },
+];
+
+const CHAPTER_RAIL_ITEMS: ChapterItem[] = [
+  { id: 'hero-top', roman: '0', label: 'Mở đầu' },
+  { id: 'hanh-trinh', roman: 'I', label: 'Hành trình 4 bước' },
+  { id: 'thu-nghiem', roman: 'II', label: 'Thử bắt lỗi' },
+  { id: 'quy-trinh', roman: 'III', label: 'Cách hoạt động' },
+  { id: 'so-tt152', roman: 'IV', label: 'Bộ 4 sổ thuế' },
+  { id: 'dang-nhap', roman: 'V', label: 'Dùng thử ngay' },
 ];
 
 function MetricItem({
@@ -120,11 +146,11 @@ function MetricItem({
   active: boolean;
 }) {
   const animated = useAnimatedNumber(value, active, 700);
+  const formatted = `${value < 10 && value > 0 ? `0${animated}` : animated}${suffix}`;
   return (
     <div className="p-5 sm:p-6">
       <div className="font-heading text-3xl font-extrabold tracking-tight text-[#111625] tabular-nums sm:text-4xl">
-        {value < 10 && value > 0 ? `0${animated}` : animated}
-        {suffix}
+        <OdometerNumber value={formatted} />
       </div>
       <div className="mt-1.5 text-sm font-bold text-[#2E2396]">{label}</div>
       <p className="mt-1 text-xs leading-relaxed text-[#475569]">{detail}</p>
@@ -144,6 +170,33 @@ export function LandingPage({
   const [feedIdx, setFeedIdx] = useState<number>(0);
 
   const [metricsRef, metricsVisible] = useReveal<HTMLDivElement>(0.15);
+  const heroRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const heroLeftY = useTransform(heroScroll, [0, 1], [0, -10]);
+  const heroCardY = useTransform(heroScroll, [0, 1], [0, -24]);
+
+  const cardTiltX = useMotionValue(0);
+  const cardTiltY = useMotionValue(0);
+  const smoothTiltX = useSpring(cardTiltX, { stiffness: 220, damping: 24 });
+  const smoothTiltY = useSpring(cardTiltY, { stiffness: 220, damping: 24 });
+
+  const handleHeroCardMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    cardTiltX.set(-py * 4.5);
+    cardTiltY.set(px * 4.5);
+  };
+
+  const resetHeroCardTilt = () => {
+    cardTiltX.set(0);
+    cardTiltY.set(0);
+  };
 
   const selectedSheet = SHEET_SPECS.find((s) => s.code === activeSheet) || SHEET_SPECS[0];
   const currentFeed = HERO_PARSE_FEED[feedIdx];
@@ -169,6 +222,9 @@ export function LandingPage({
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen overflow-x-clip bg-[#F6F8FB] text-[#111625]">
+        <ScrollProgressBar />
+        <ScrollChapterRail chapters={CHAPTER_RAIL_ITEMS} onNavigate={scrollToSection} />
+
         {/* Sticky Top Navbar */}
         <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -185,17 +241,17 @@ export function LandingPage({
             </div>
 
             <nav className="hidden shrink-0 items-center gap-6 whitespace-nowrap text-xs font-semibold text-[#475569] lg:flex">
+              <a href="#hanh-trinh" className="transition hover:text-[#2E2396]">
+                Xem cách biến đổi
+              </a>
               <a href="#thu-nghiem" className="transition hover:text-[#2E2396]">
-                Thử kiểm toán
+                Thử bắt lỗi
               </a>
               <a href="#quy-trinh" className="transition hover:text-[#2E2396]">
-                Kiến trúc AI + Python
+                Cách hoạt động
               </a>
               <a href="#so-tt152" className="transition hover:text-[#2E2396]">
-                Bộ 4 sổ TT152
-              </a>
-              <a href="#dang-nhap" className="transition hover:text-[#2E2396]">
-                Mở sổ ngay
+                Bộ 4 sổ thuế
               </a>
             </nav>
 
@@ -248,30 +304,29 @@ export function LandingPage({
         </header>
 
         {/* Editorial Asymmetric Hero with Subtle Archival Contour Shader */}
-        <section className="relative overflow-hidden border-b border-border/60">
+        <section
+          id="hero-top"
+          ref={heroRef}
+          className="relative overflow-hidden border-b border-border/60 bg-[#F6F8FB]"
+        >
           <HeroShaderCanvas />
 
           <div className="relative z-10 mx-auto max-w-6xl px-4 pt-12 pb-14 sm:px-6 lg:pt-16 lg:pb-18">
             <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
-              {/* Hero Left: Kinetic Focus Entrance (Linear style, visible by default) */}
-              <motion.div
-                initial={{ opacity: 0.96, y: 10, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="min-w-0 lg:col-span-6"
-              >
+              {/* Hero Left: Lusion-style Masked Typography Entrance (visible by default) */}
+              <motion.div style={{ y: heroLeftY }} className="min-w-0 lg:col-span-6">
                 <h1 className="font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-[#111625] sm:text-5xl">
-                  Chụp hóa đơn.
-                  <br />
-                  Nói một câu.
-                  <br />
-                  <span className="text-[#2E2396]">Sổ sách tự vào đúng dòng.</span>
+                  <MaskedLine delay={0.04}>Chụp hóa đơn.</MaskedLine>
+                  <MaskedLine delay={0.14}>Nói một câu.</MaskedLine>
+                  <MaskedLine delay={0.24}>
+                    <span className="text-[#2E2396]">Sổ sách tự vào đúng dòng.</span>
+                  </MaskedLine>
                 </h1>
 
                 <p className="mt-5 max-w-[58ch] text-base leading-relaxed text-[#475569]">
-                  Dành cho hộ kinh doanh và doanh nghiệp nhỏ Việt Nam không rành định khoản Nợ/Có.
-                  Keiki đọc hóa đơn giấy viết tay, ảnh chuyển khoản VietQR và giọng nói vùng miền,
-                  kiểm toán số học độc lập rồi xuất đủ 4 sổ thuế S1–S4.
+                  Bán hàng cả ngày mệt nhoài, tối về khỏi phải lật từng tờ bill cộng tay hay đau đầu
+                  chia cột sổ sách. Cứ chụp lại hóa đơn, ảnh chuyển khoản hoặc đọc miệng vài chữ —
+                  Keiki tự nhặt số, kiểm lại cho đỡ nhầm lẫn rồi xếp gọn vào đủ 4 cuốn sổ thuế.
                 </p>
 
                 <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -281,7 +336,7 @@ export function LandingPage({
                     onClick={() => scrollToSection('thu-nghiem')}
                     className="h-11 rounded-xl px-5 text-sm font-bold shadow-sm transition-transform hover:-translate-y-0.5 active:translate-y-px"
                   >
-                    <span>Thử kiểm toán trực tiếp</span>
+                    <span>Thử bắt lỗi ngay</span>
                     <AppIcon name="play_arrow" className="text-lg" />
                   </Button>
 
@@ -293,7 +348,7 @@ export function LandingPage({
                     className="h-11 rounded-xl bg-white/90 px-5 text-sm font-bold transition-transform hover:-translate-y-0.5 active:translate-y-px"
                   >
                     <AppIcon name="menu_book" className="text-lg text-[#2E2396]" />
-                    <span>Đăng nhập mở sổ hộ</span>
+                    <span>Vào sổ của quán</span>
                   </Button>
                 </div>
 
@@ -330,23 +385,23 @@ export function LandingPage({
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   <Badge variant="outline" className="border-[#2E2396]/25 bg-white/80 text-[#2E2396]">
-                    Thông tư 152/2025/TT-BTC
+                    Chuẩn Thông tư 152/2025
                   </Badge>
-                  <Badge variant="secondary">Không cần hiểu định khoản Nợ / Có</Badge>
+                  <Badge variant="secondary">Không cần biết nghiệp vụ kế toán</Badge>
                 </div>
 
                 <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-5 text-xs">
                   <div>
-                    <div className="font-bold text-[#111625]">Không trùng chéo</div>
-                    <div className="mt-0.5 text-[#475569]">Khớp Hóa đơn ↔ VietQR</div>
+                    <div className="font-bold text-[#111625]">Chặn ghi trùng</div>
+                    <div className="mt-0.5 text-[#475569]">Thấy bill trùng QR là hỏi ngay</div>
                   </div>
                   <div>
-                    <div className="font-bold text-[#111625]">Xuất Excel S1–S4</div>
-                    <div className="mt-0.5 text-[#475569]">Đính kèm ZIP chứng từ</div>
+                    <div className="font-bold text-[#111625]">Đủ bộ 4 sổ Excel</div>
+                    <div className="mt-0.5 text-[#475569]">Kèm luôn gói ảnh hóa đơn gốc</div>
                   </div>
                   <div>
-                    <div className="font-bold text-[#111625]">Cách ly dữ liệu</div>
-                    <div className="mt-0.5 text-[#475569]">Scrypt + Google OAuth</div>
+                    <div className="font-bold text-[#111625]">Sổ ai nấy giữ</div>
+                    <div className="mt-0.5 text-[#475569]">Riêng tư theo từng tài khoản</div>
                   </div>
                 </div>
               </motion.div>
@@ -356,7 +411,15 @@ export function LandingPage({
                 initial={{ opacity: 0.96, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.54, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
-                className="min-w-0 lg:col-span-6"
+                style={{
+                  y: heroCardY,
+                  rotateX: smoothTiltX,
+                  rotateY: smoothTiltY,
+                  transformPerspective: 1000,
+                }}
+                onPointerMove={handleHeroCardMove}
+                onPointerLeave={resetHeroCardTilt}
+                className="min-w-0 will-change-transform lg:col-span-6"
               >
                 <Card className="surface-lift gap-0 py-0 shadow-md">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-4 py-3">
@@ -425,15 +488,15 @@ export function LandingPage({
                             <div className="flex items-center justify-between gap-2">
                               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0B6E54]">
                                 <AppIcon name="calculate" className="text-base" />
-                                Kiểm toán Python: Đạt chuẩn
+                                Đã kiểm tra xong: Hợp lệ
                               </span>
                               <Badge variant="emerald" className="font-mono">
                                 S2-HKD
                               </Badge>
                             </div>
                             <p className="mt-1.5 text-xs leading-relaxed text-[#475569]">
-                              Tổng tiền <code className="font-mono text-[#111625]">5 × 180.000 = 900.000 đ</code> khớp hoàn toàn với tổng mặt
-                              giấy. Giá nhập giữ ổn định so với lịch sử 30 ngày qua.
+                              Số tiền <code className="font-mono text-[#111625]">5 × 180.000 = 900.000 đ</code> khớp
+                              đúng trên tờ hóa đơn. Giá nhập vẫn bằng tháng trước.
                             </p>
                           </motion.div>
                         ) : (
@@ -463,15 +526,15 @@ export function LandingPage({
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B91C1C]">
                                   <AppIcon name="compare_arrows" className="text-base" />
-                                  Khóa ghi trùng CROSS_DUPLICATE
+                                  Nghi trùng bill chuyển khoản (CROSS_DUPLICATE)
                                 </span>
                                 <Badge variant="destructive" className="font-bold">
                                   CẦN HỎI LẠI
                                 </Badge>
                               </div>
                               <p className="mt-1.5 text-xs leading-relaxed text-[#475569]">
-                                Keiki dừng tự động ghi sổ và hỏi lại chủ hộ trước khi gộp hai chứng từ
-                                vào làm một — giúp báo cáo thuế và dòng tiền ngân hàng không bị sai lệch.
+                                Keiki dừng lại hỏi bạn trước khi gộp hai giấy tờ làm một — để không
+                                bị ghi nhầm thành hai khoản chi giống nhau.
                               </p>
                             </div>
                           </motion.div>
@@ -482,53 +545,88 @@ export function LandingPage({
                 </Card>
               </motion.div>
             </div>
+
+            {/* Lusion-Inspired Technical Crosshair Registration Rule */}
+            <div className="mt-10 flex items-center justify-between gap-2 border-t border-border/70 pt-4 font-mono text-xs text-[#475569]">
+              <span aria-hidden="true" className="font-bold text-[#111625]">+</span>
+              <span className="hidden sm:inline">CHỤP HÓA ĐƠN • ĐỌC THOẠI • DÒ NHẦM LẪN • LÊN SỔ S1–S4</span>
+              <span className="sm:hidden">CHỤP BILL • DÒ NHẦM LẪN</span>
+              <button
+                type="button"
+                onClick={() => scrollToSection('hanh-trinh')}
+                className="shrink-0 cursor-pointer font-semibold text-[#2E2396] transition hover:underline"
+              >
+                <span className="hidden sm:inline">CUỘN XUỐNG XEM CHI TIẾT ↓</span>
+                <span className="sm:hidden">XEM CHI TIẾT ↓</span>
+              </button>
+              <span aria-hidden="true" className="hidden font-bold text-[#111625] md:inline">+</span>
+            </div>
           </div>
         </section>
 
         {/* Precision Metrics Strip */}
         <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-          <div
-            ref={metricsRef}
-            className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-xs sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
-          >
-            <MetricItem
-              value={4}
-              label="Mẫu sổ Thông tư 152"
-              detail="Xuất S1-HKD, S2-HKD, S3-HKD và Sheet Hồ sơ Vay vốn ngân hàng."
-              active={metricsVisible}
-            />
-            <MetricItem
-              value={6}
-              label="Bước kiểm toán độc lập"
-              detail="Tách biệt khâu AI bóc tách ngữ nghĩa với khâu Python kiểm tra số học."
-              active={metricsVisible}
-            />
-            <MetricItem
-              value={100}
-              suffix="%"
-              label="Chứng từ lưu đối soát"
-              detail="Mọi bút toán đều đính kèm ảnh hóa đơn, biên lai VietQR hoặc ghi âm gốc tại quầy."
-              active={metricsVisible}
-            />
-            <MetricItem
-              value={0}
-              label="Bút toán tự ghi khi lệch số"
-              detail="Luôn tạm dừng khi nghi trùng chéo hoặc giá nhập tăng quá 30%."
-              active={metricsVisible}
-            />
-          </div>
+          <ScrollReveal y={20}>
+            <div
+              ref={metricsRef}
+              className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-xs sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+            >
+              <MetricItem
+                value={4}
+                label="Cuốn sổ thuế chuẩn mẫu"
+                detail="Tự chia sẵn S1, S2, S3 và bảng chứng minh thu nhập gửi ngân hàng."
+                active={metricsVisible}
+              />
+              <MetricItem
+                value={6}
+                label="Lượt dò số trước khi lưu"
+                detail="AI lo đọc chữ khó, còn cộng trừ nhân chia do máy tính tự kiểm lại."
+                active={metricsVisible}
+              />
+              <MetricItem
+                value={100}
+                suffix="%"
+                label="Lưu kèm ảnh hóa đơn gốc"
+                detail="Mỗi dòng thu chi đều gắn lại ảnh chụp, biên lai hoặc file ghi âm ban đầu."
+                active={metricsVisible}
+              />
+              <MetricItem
+                value={0}
+                label="Lần tự ghi bừa khi thấy lạ"
+                detail="Thấy giá đắt bất thường hay trùng bill là dừng lại hỏi chủ quán trước."
+                active={metricsVisible}
+              />
+            </div>
+          </ScrollReveal>
         </section>
 
-        {/* Section: Interactive AI & Python Sandbox Workbench */}
+        {/* Section I: Stepwise Before -> After Transformation Showcase (Sticky Scroll-Scrubbed) */}
+        <section id="hanh-trinh" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
+          <ScrollReveal y={24} className="mb-6 max-w-2xl">
+            <h2 className="font-heading text-2xl font-extrabold tracking-tight text-[#111625] sm:text-3xl">
+              <span className="mr-2 font-mono text-[#2E2396]">I.</span>
+              Từ tờ bill nhàu đến dòng sổ thuế gọn gàng
+            </h2>
+            <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-[#475569]">
+              Lướt chậm qua khu vực bên dưới (hoặc bấm từng bước) để xem một hóa đơn viết tay hay
+              câu nói vội tại quầy đi qua khâu kiểm tra nào trước khi lên sổ.
+            </p>
+          </ScrollReveal>
+
+          <StepwiseTransform />
+        </section>
+
+        {/* Section II: Interactive AI & Python Sandbox Workbench */}
         <section id="thu-nghiem" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <ScrollReveal y={24} className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
               <h2 className="font-heading text-2xl font-extrabold tracking-tight text-[#111625] sm:text-3xl">
-                Xem Keiki xử lý chứng từ trước khi mở sổ
+                <span className="mr-2 font-mono text-[#2E2396]">II.</span>
+                Tự tay thử bắt lỗi hóa đơn ngay tại đây
               </h2>
-              <p className="mt-2.5 text-sm leading-relaxed text-[#475569]">
-                Kéo thanh điều chỉnh đơn giá, bật giả lập VietQR hoặc chuyển giữa các tình huống thực
-                tế bên dưới để xem tầng Python bắt lỗi và xuất sổ ô ly ngay trên màn hình.
+              <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-[#475569]">
+                Bấm thử một lệnh mẫu bên dưới hoặc kéo chỉnh đơn giá xem Keiki tự nhân lại tiền,
+                phát hiện giá nhảy vọt hay chặn bill chuyển khoản trùng như thế nào.
               </p>
             </div>
             <Button
@@ -537,40 +635,43 @@ export function LandingPage({
               onClick={() => onNavigateLogin('login')}
               className="h-auto px-0 text-xs font-bold text-[#2E2396]"
             >
-              <span>Dùng thử với ảnh hóa đơn thật của bạn</span>
+              <span>Thử bằng ảnh hóa đơn thật của bạn</span>
               <AppIcon name="arrow_forward" className="text-base" />
             </Button>
-          </div>
+          </ScrollReveal>
 
-          <AuditWorkbench />
+          <ScrollReveal delay={0.08} y={24}>
+            <AuditWorkbench />
+          </ScrollReveal>
         </section>
 
-        {/* Section: Dual-Engine Architecture + Live Signal Flow Diagram */}
+        {/* Section III: Dual-Engine Architecture + Live Signal Flow Diagram */}
         <section id="quy-trinh" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-          <div className="mb-6 max-w-2xl">
+          <ScrollReveal y={24} className="mb-6 max-w-2xl">
             <h2 className="font-heading text-2xl font-extrabold tracking-tight text-[#111625] sm:text-3xl">
-              AI không tự ý làm phép tính thuế thay kế toán
+              <span className="mr-2 font-mono text-[#2E2396]">III.</span>
+              AI chỉ đọc chữ — Máy tính kiểm tiền, không lo tính ẩu
             </h2>
-            <p className="mt-2.5 text-sm leading-relaxed text-[#475569]">
-              Keiki tách rạch ròi vai trò: mô hình ngôn ngữ chỉ đọc hiểu tiếng Việt và chứng từ mờ;
-              toàn bộ phép nhân đơn giá, so sánh lịch sử và phát hiện trùng chéo chạy bằng mã Python xác
-              định.
+            <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-[#475569]">
+              Nhiều chủ quán ngại dùng AI làm sổ vì sợ nó tự đoán mò rồi cộng sai tiền. Keiki chia làm
+              2 khâu riêng: Gemini đọc ảnh và giọng nói; mọi phép tính, so giá và tìm bill trùng đều
+              chạy bằng công thức cố định.
             </p>
-          </div>
+          </ScrollReveal>
 
           <Card className="min-w-0 gap-0 overflow-hidden py-0">
             {/* Top Animated Signal Pipeline Strip */}
             <div className="border-b border-border bg-[#F6F8FB] px-5 py-4 sm:px-8">
               <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-7">
-                <div className="flex items-center gap-2.5 md:col-span-2">
+                <ScrollReveal y={14} delay={0.05} className="flex items-center gap-2.5 md:col-span-2">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#2E2396] ring-1 ring-border">
                     <AppIcon name="photo_camera" className="text-sm" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-[#111625]">1. Chứng từ thô</div>
+                    <div className="text-xs font-bold text-[#111625]">1. Ảnh / Ghi âm gốc</div>
                     <div className="text-xs text-[#475569]">Hóa đơn, VietQR, Thoại</div>
                   </div>
-                </div>
+                </ScrollReveal>
 
                 <div className="hidden items-center justify-center md:flex">
                   <svg className="h-3 w-full" viewBox="0 0 80 12" fill="none" aria-hidden="true">
@@ -586,15 +687,15 @@ export function LandingPage({
                   </svg>
                 </div>
 
-                <div className="flex items-center gap-2.5 md:col-span-2">
+                <ScrollReveal y={14} delay={0.14} className="flex items-center gap-2.5 md:col-span-2">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#2E2396] text-white">
                     <AppIcon name="psychology" className="text-sm" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-[#111625]">2. Gemini Đọc Hiểu</div>
-                    <div className="text-xs text-[#475569]">JSON + Điểm tin cậy</div>
+                    <div className="text-xs font-bold text-[#111625]">2. Gemini đọc &amp; hiểu ý</div>
+                    <div className="text-xs text-[#475569]">Nhặt tên hàng, ngày, số</div>
                   </div>
-                </div>
+                </ScrollReveal>
 
                 <div className="hidden items-center justify-center md:flex">
                   <svg className="h-3 w-full" viewBox="0 0 80 12" fill="none" aria-hidden="true">
@@ -610,15 +711,15 @@ export function LandingPage({
                   </svg>
                 </div>
 
-                <div className="flex items-center gap-2.5 md:col-span-1">
+                <ScrollReveal y={14} delay={0.23} className="flex items-center gap-2.5 md:col-span-1">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B6E54] text-white">
                     <AppIcon name="shield" className="text-sm" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-[#111625]">3. Python Chốt</div>
-                    <div className="text-xs text-[#475569]">Sổ S1–S4</div>
+                    <div className="text-xs font-bold text-[#111625]">3. Máy tính kiểm số</div>
+                    <div className="text-xs text-[#475569]">Đủ sổ S1–S4</div>
                   </div>
-                </div>
+                </ScrollReveal>
               </div>
             </div>
 
@@ -626,108 +727,145 @@ export function LandingPage({
               {/* Column 1: AI Comprehension (5 columns) */}
               <div className="min-w-0 border-b border-border p-6 sm:p-8 lg:col-span-5 lg:border-r lg:border-b-0">
                 <h3 className="font-heading text-lg font-bold text-[#111625]">
-                  Đọc hiểu giọng nói 3 miền và hóa đơn chụp vội
+                  Nghe hiểu giọng nói 3 miền và hóa đơn chụp vội
                 </h3>
                 <div className="mt-2.5">
                   <Badge variant="outline" className="border-[#2E2396]/30 text-[#2E2396]">
                     <AppIcon name="psychology" className="text-sm" />
-                    Tầng Đọc Hiểu — Google Gemini
+                    Khâu đọc hiểu — Google Gemini
                   </Badge>
                 </div>
 
                 <ul className="mt-6 divide-y divide-border text-xs leading-relaxed text-[#475569]">
-                  <li className="flex items-start gap-3 py-3.5 first:pt-0">
+                  <motion.li
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.45, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-start gap-3 py-3.5 first:pt-0"
+                  >
                     <AppIcon name="document_scanner" className="mt-0.5 shrink-0 text-base text-[#2E2396]" />
                     <span>
-                      Đọc hóa đơn bán lẻ viết tay, giấy nhiệt mờ và ảnh màn hình chuyển khoản mọi ngân
-                      hàng VietQR.
+                      Đọc được cả phiếu viết tay nghệch ngoạc, giấy in nhiệt mờ và ảnh chụp chuyển
+                      khoản ngân hàng VietQR.
                     </span>
-                  </li>
-                  <li className="flex items-start gap-3 py-3.5">
+                  </motion.li>
+                  <motion.li
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.45, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-start gap-3 py-3.5"
+                  >
                     <AppIcon name="graphic_eq" className="mt-0.5 shrink-0 text-base text-[#2E2396]" />
                     <span>
-                      Chuyển đổi tiếng Việt nói tự nhiên ("tá lốc", "trăm rưỡi", "mới bán thiếu") về
-                      cấu trúc JSON rõ ràng.
+                      Hiểu cách nói bình dân thường ngày ("tá lốc", "trăm rưỡi", "mới bán thiếu") để
+                      xếp đúng cột doanh thu hay chi phí.
                     </span>
-                  </li>
-                  <li className="flex items-start gap-3 py-3.5 last:pb-0">
+                  </motion.li>
+                  <motion.li
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.45, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-start gap-3 py-3.5 last:pb-0"
+                  >
                     <AppIcon name="verified" className="mt-0.5 shrink-0 text-base text-[#2E2396]" />
                     <span>
-                      Gắn điểm tin cậy cho từng trường dữ liệu để bôi vàng hỏi lại ngay khi chữ viết
-                      quá mờ.
+                      Gặp chỗ nào mực nhòe hoặc nghe chưa chắc là bôi vàng hỏi lại ngay, tuyệt đối
+                      không tự đoán mò.
                     </span>
-                  </li>
+                  </motion.li>
                 </ul>
               </div>
 
               {/* Column 2: Deterministic Python Audit (7 columns) */}
               <div className="min-w-0 bg-[#F6F8FB]/60 p-6 sm:p-8 lg:col-span-7">
                 <h3 className="font-heading text-lg font-bold text-[#111625]">
-                  Chặn 3 rủi ro sai sổ phổ biến nhất của hộ kinh doanh
+                  Bắt gọn 3 lỗi sai sổ hay gặp nhất ngoài quầy
                 </h3>
                 <div className="mt-2.5">
                   <Badge variant="emerald">
                     <AppIcon name="shield" className="text-sm" />
-                    Tầng Kiểm Toán — Python Xác Định
+                    Khâu kiểm tra công thức — Python
                   </Badge>
                 </div>
 
                 <div className="mt-6 divide-y divide-border">
-                  <div className="flex flex-col gap-2 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.48, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex flex-col gap-2 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[#111625]">
-                        Chặn trùng chéo hóa đơn – VietQR (<code className="font-mono text-xs">CROSS_DUPLICATE</code>)
+                        Tránh ghi 2 lần hóa đơn giấy + VietQR (<code className="font-mono text-xs">CROSS_DUPLICATE</code>)
                       </div>
                       <p className="mt-1 text-xs leading-relaxed text-[#475569]">
-                        Khi vừa chụp hóa đơn giấy vừa dán ảnh chuyển khoản cùng số tiền trong ±3 ngày,
-                        Keiki hỏi gộp thành 1 bút toán đối chiếu kép.
+                        Nếu vừa chụp tờ bill sáng nay, chiều lại dán thêm ảnh chuyển khoản cùng số
+                        tiền trong vòng 3 ngày, Keiki hỏi bạn gộp làm một.
                       </p>
                     </div>
                     <Badge variant="destructive" className="shrink-0 font-mono">
-                      Chống tính thuế 2 lần
+                      Khỏi tính thuế 2 lần
                     </Badge>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.48, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[#111625]">
-                        Cảnh báo sốc giá nhập (<code className="font-mono text-xs">PRICE_ANOMALY</code>)
+                        Nhắc ngay khi lỡ bấm dư số 0 (<code className="font-mono text-xs">PRICE_ANOMALY</code>)
                       </div>
                       <p className="mt-1 text-xs leading-relaxed text-[#475569]">
-                        So sánh đơn giá mặt hàng với trung vị lịch sử; lệch vượt +30% tự động tô vàng
-                        và đọc cảnh báo cho chủ hộ.
+                        So giá từng mặt hàng với các lần nhập cũ; nếu bỗng cao hơn 30%, hệ thống tô
+                        vàng và đọc tiếng Việt nhắc kiểm tra lại.
                       </p>
                     </div>
                     <Badge variant="amber" className="shrink-0 font-mono">
-                      Ngăn ghi nhầm 0 thừa
+                      Chặn nhầm giá nhập
                     </Badge>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex flex-col gap-2 py-4 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.48, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex flex-col gap-2 py-4 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[#111625]">
-                        Chống chèn công thức Excel &amp; Cô lập sổ hộ
+                        Khóa riêng dữ liệu &amp; Xuất Excel sạch
                       </div>
                       <p className="mt-1 text-xs leading-relaxed text-[#475569]">
-                        Mỗi hộ kinh doanh có kho dữ liệu độc lập qua Cookie ký số; tệp Excel xuất ra
-                        được vô hiệu hóa chuỗi công thức độc hại.
+                        Mỗi cửa hàng giữ sổ riêng biệt sau khi đăng nhập; tệp Excel xuất ra làm sạch
+                        hoàn toàn ký tự dễ gây lỗi công thức.
                       </p>
                     </div>
                     <Badge variant="emerald" className="shrink-0 font-mono">
-                      Sẵn sàng Production
+                      Sẵn sàng dùng thật
                     </Badge>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
-        {/* Section: Circular 152 Interactive Sheet Preview */}
+        {/* Section IV: Circular 152 Interactive Sheet Preview */}
         <section id="so-tt152" className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <ScrollReveal y={24} className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
               <h2 className="font-heading text-2xl font-extrabold tracking-tight text-[#111625] sm:text-3xl">
+                <span className="mr-2 font-mono text-[#2E2396]">IV.</span>
                 Trọn bộ 4 sổ Thông tư 152/2025 &amp; Hồ sơ vay vốn
               </h2>
             </div>
@@ -760,9 +898,10 @@ export function LandingPage({
                 })}
               </TabsList>
             </Tabs>
-          </div>
+          </ScrollReveal>
 
-          <Card className="min-w-0 gap-0 overflow-hidden py-0">
+          <ScrollReveal delay={0.08} y={24}>
+            <Card className="min-w-0 gap-0 overflow-hidden py-0">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-5 py-4">
               <div>
                 <h3 className="font-heading text-base font-bold text-[#111625]">
@@ -830,19 +969,21 @@ export function LandingPage({
                 Định dạng .XLSX &amp; .ZIP chứng từ
               </span>
             </div>
-          </Card>
+            </Card>
+          </ScrollReveal>
         </section>
 
         {/* Section: Integrated Auth Gate */}
         <section id="dang-nhap" className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
-            <div className="min-w-0 space-y-4 lg:col-span-5">
+            <ScrollReveal y={24} className="min-w-0 space-y-4 lg:col-span-5">
               <h2 className="font-heading text-2xl font-extrabold tracking-tight text-[#111625] sm:text-3xl">
+                <span className="mr-2 font-mono text-[#2E2396]">V.</span>
                 Mở sổ kế toán riêng cho cửa hàng của bạn
               </h2>
               <p className="text-sm leading-relaxed text-[#475569]">
-                Đăng nhập bằng Google hoặc Số điện thoại. Toàn bộ chứng từ, sổ thuế S1–S4 và lịch sử
-                kiểm toán được cô lập riêng cho từng hộ kinh doanh.
+                Đăng nhập nhanh bằng Google hoặc Số điện thoại. Sổ sách, ảnh hóa đơn và thuế của
+                quán nào đều được giữ riêng cho quán đó.
               </p>
 
               <div className="space-y-2.5 pt-2 text-xs text-[#111625]">
@@ -878,11 +1019,11 @@ export function LandingPage({
                   <AppIcon name="open_in_new" className="text-base" />
                 </Button>
               </div>
-            </div>
+            </ScrollReveal>
 
-            <div className="min-w-0 lg:col-span-7">
+            <ScrollReveal delay={0.1} y={26} className="min-w-0 lg:col-span-7">
               <AuthPanel variant="embedded" onLoginSuccess={onLoginSuccess} />
-            </div>
+            </ScrollReveal>
           </div>
         </section>
 

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { OdometerNumber } from './OdometerNumber';
 import { Stamp } from './Stamp';
 
 export type WorkbenchScenarioId =
@@ -338,10 +339,10 @@ export function AuditWorkbench() {
 
   /* 4-bar Stripe-inspired field completeness telemetry */
   const sandboxTelemetryBars = [
-    { label: 'Đối tác', active: sandboxPartner.trim().length >= 3 },
-    { label: 'SL × Đơn giá', active: sandboxQty > 0 && sandboxUnitPrice > 0 },
-    { label: 'Lịch sử giá', active: !hasPriceShock },
-    { label: 'Đối chiếu trùng', active: !sandboxSimulateDup },
+    { label: 'Tên chỗ mua', active: sandboxPartner.trim().length >= 3 },
+    { label: 'Tiền × SL', active: sandboxQty > 0 && sandboxUnitPrice > 0 },
+    { label: 'So giá cũ', active: !hasPriceShock },
+    { label: 'Tránh trùng', active: !sandboxSimulateDup },
   ];
 
   const isComplete = isSandbox ? true : visibleSteps >= scenario.steps.length;
@@ -413,7 +414,7 @@ export function AuditWorkbench() {
             </Tooltip>
           ) : (
             <Badge variant="outline" className="border-[#2E2396]/30 bg-white font-mono text-[#2E2396]">
-              Mô phỏng Python kiểm toán trực tiếp
+              Thử chỉnh số xem kiểm tra trực tiếp
             </Badge>
           )}
         </div>
@@ -428,10 +429,10 @@ export function AuditWorkbench() {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2E2396]">
                       <AppIcon name="edit_note" className="text-base" />
-                      Đầu vào giả lập tại quầy (Sửa số trực tiếp)
+                      Thử nhập như đang đứng ở quầy
                     </span>
                     <span className="font-mono text-xs text-[#475569]">
-                      Trung vị 30 ngày: 180.000 đ/kg
+                      Giá tháng trước: 180.000 đ/kg
                     </span>
                   </div>
 
@@ -501,43 +502,48 @@ export function AuditWorkbench() {
                       </div>
                     </div>
 
-                    {/* Quick Test Chips */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={sandboxUnitPrice === 180000 && !sandboxSimulateDup ? 'default' : 'outline'}
-                        onClick={() => {
-                          setSandboxUnitPrice(180000);
-                          setSandboxSimulateDup(false);
-                        }}
-                        className="h-8 text-xs font-semibold"
-                      >
-                        Giá chuẩn 180k
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSandboxUnitPrice(250000)}
-                        className={`h-8 text-xs font-semibold ${
-                          sandboxUnitPrice === 250000
-                            ? 'border-[#92400E]/45 bg-amber-50 text-[#92400E] hover:bg-amber-100'
-                            : ''
-                        }`}
-                      >
-                        Thử sốc giá +39% (250k)
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant={sandboxSimulateDup ? 'destructive-solid' : 'outline'}
-                        onClick={() => setSandboxSimulateDup((v) => !v)}
-                        className="h-8 text-xs font-semibold"
-                      >
-                        <AppIcon name="compare_arrows" className="text-sm" />
-                        {sandboxSimulateDup ? 'Đang bật trùng VietQR' : 'Bật trùng chéo VietQR'}
-                      </Button>
+                    {/* Shopify-Editions-inspired Quick /command Prompt Chips */}
+                    <div className="space-y-2 pt-1">
+                      <div className="text-xs font-medium text-[#475569]">
+                        Bấm nhanh một tình huống thử:
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={sandboxUnitPrice === 180000 && !sandboxSimulateDup ? 'default' : 'outline'}
+                          onClick={() => {
+                            setSandboxUnitPrice(180000);
+                            setSandboxSimulateDup(false);
+                          }}
+                          className="h-8 font-mono text-xs font-semibold"
+                        >
+                          /nhập-chuẩn-180k
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSandboxUnitPrice(250000)}
+                          className={`h-8 font-mono text-xs font-semibold ${
+                            sandboxUnitPrice === 250000
+                              ? 'border-[#92400E]/45 bg-amber-50 text-[#92400E] hover:bg-amber-100'
+                              : ''
+                          }`}
+                        >
+                          /thử-nhầm-giá-250k
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={sandboxSimulateDup ? 'destructive-solid' : 'outline'}
+                          onClick={() => setSandboxSimulateDup((v) => !v)}
+                          className="h-8 font-mono text-xs font-semibold"
+                        >
+                          <AppIcon name="compare_arrows" className="text-sm" />
+                          {sandboxSimulateDup ? '/đang-trùng-vietqr' : '/thử-trùng-vietqr'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -545,23 +551,45 @@ export function AuditWorkbench() {
                 {/* Stripe-inspired 4-segment Audit Integrity Meter */}
                 <div className="border-t border-border pt-4">
                   <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#111625]">
-                    <span>Chỉ số sẵn sàng ghi sổ tự động</span>
+                    <span>Kiểm tra an toàn trước khi lưu sổ</span>
                     <span
                       className={`font-mono ${
                         sandboxPassed ? 'text-[#0B6E54]' : 'text-[#B91C1C]'
                       }`}
                     >
-                      {sandboxPassed ? '4/4 tiêu chí an toàn' : `${sandboxAlerts.length} cảnh báo khóa sổ`}
+                      {sandboxPassed ? '4/4 mục an toàn' : `Dừng lại: có ${sandboxAlerts.length} cảnh báo`}
                     </span>
                   </div>
                   <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {sandboxTelemetryBars.map((seg) => (
-                      <div key={seg.label} className="space-y-1.5">
-                        <div
-                          className={`h-2 w-full rounded-full transition-colors duration-200 ${
-                            seg.active ? 'bg-[#0B6E54]' : 'bg-[#B91C1C]/80'
-                          }`}
-                        />
+                    {sandboxTelemetryBars.map((seg, idx) => (
+                      <motion.div
+                        key={seg.label}
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.25 }}
+                        transition={{
+                          duration: 0.4,
+                          delay: 0.06 * idx,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
+                        className="space-y-1.5"
+                      >
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80">
+                          <motion.div
+                            initial={{ scaleX: 0 }}
+                            whileInView={{ scaleX: 1 }}
+                            viewport={{ once: true, amount: 0.25 }}
+                            transition={{
+                              duration: 0.52,
+                              delay: 0.08 * idx,
+                              ease: [0.16, 1, 0.3, 1],
+                            }}
+                            style={{ originX: 0 }}
+                            className={`h-full w-full rounded-full transition-colors duration-200 ${
+                              seg.active ? 'bg-[#0B6E54]' : 'bg-[#B91C1C]/80'
+                            }`}
+                          />
+                        </div>
                         <div className="flex items-center justify-between text-xs font-medium text-[#475569]">
                           <span className="truncate">{seg.label}</span>
                           <AppIcon
@@ -571,7 +599,7 @@ export function AuditWorkbench() {
                             }`}
                           />
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
@@ -621,9 +649,16 @@ export function AuditWorkbench() {
                               ? 'bg-amber-50 text-[#92400E]'
                               : 'bg-[#E8ECF6] text-[#2E2396]';
                       return (
-                        <div
+                        <motion.div
                           key={`${selectedId}-${replayNonce}-${step.code}`}
-                          className={`audit-step-enter flex items-start gap-3 px-2 py-3 ${
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.36,
+                            delay: Math.min(idx * 0.04, 0.24),
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className={`flex items-start gap-3 px-2 py-3 ${
                             isLatest ? 'bg-[#F6F8FB]' : ''
                           }`}
                         >
@@ -643,7 +678,7 @@ export function AuditWorkbench() {
                               {step.detail}
                             </p>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -680,7 +715,7 @@ export function AuditWorkbench() {
                         <span>+ computed_total_vnd</span>
                         <span className="font-bold tabular-nums">
                           {sandboxQty} × {formatCurrencyVi(sandboxUnitPrice)} ={' '}
-                          {formatCurrencyVi(sandboxTotal)}
+                          <OdometerNumber value={formatCurrencyVi(sandboxTotal)} />
                         </span>
                       </div>
                       <div
@@ -808,7 +843,11 @@ export function AuditWorkbench() {
                             : 'text-[#111625]'
                         }`}
                       >
-                        {isSandbox ? `-${formatCurrencyVi(sandboxTotal)}` : scenario.ledgerRow.amountStr}
+                        {isSandbox ? (
+                          <OdometerNumber value={`-${formatCurrencyVi(sandboxTotal)}`} />
+                        ) : (
+                          scenario.ledgerRow.amountStr
+                        )}
                       </div>
 
                       <div className="mt-2 min-h-[28px]">
@@ -848,7 +887,7 @@ export function AuditWorkbench() {
                       ? 'Khoản chuyển khoản VietQR này có thanh toán cho hóa đơn giấy #TX-104 hay là đơn mới? '
                       : ''}
                     {hasPriceShock
-                      ? `Đơn giá ${formatCurrencyVi(sandboxUnitPrice)} cao hơn ${priceDeviationPct}% so với trung vị lịch sử (180.000 đ). Cô/chú kiểm tra lại giúp xem có gõ nhầm số không nhé?`
+                      ? `Đơn giá ${formatCurrencyVi(sandboxUnitPrice)} đang cao hơn ${priceDeviationPct}% so với giá tháng trước (180.000 đ). Bạn kiểm tra lại xem có lỡ bấm dư số không nhé?`
                       : ''}
                   </div>
                 )}
