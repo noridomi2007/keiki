@@ -607,8 +607,8 @@ export function AuthPanel({
         <Card className="gap-0 py-0 shadow-xs">{formColumn}</Card>
       ) : (
         <Card className="mx-auto my-6 grid w-full max-w-5xl grid-cols-1 gap-0 py-0 shadow-sm lg:grid-cols-12">
-          <div className="notebook-ledger flex flex-col justify-between border-b border-border p-6 sm:p-8 lg:col-span-6 lg:border-r lg:border-b-0">
-            <div className="pl-10">
+          <div className="notebook-ledger flex flex-col justify-between border-b border-border p-5 pl-6 sm:p-8 lg:col-span-6 lg:border-r lg:border-b-0">
+            <div className="sm:pl-10">
               <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-tight text-[#111625] sm:text-3xl">
                 Sổ kế toán tự nhiên dành cho Hộ kinh doanh và SME Việt Nam
               </h1>
@@ -689,7 +689,7 @@ export function AuthPanel({
               )}
             </div>
 
-            <div className="mt-6 ml-10 flex items-center gap-2 border-t border-border pt-4 text-xs text-[#475569]">
+            <div className="mt-6 flex items-center gap-2 border-t border-border pt-4 text-xs text-[#475569] sm:ml-10">
               <AppIcon name="verified_user" className="text-lg text-[#0B6E54]" />
               <span>
                 Vận hành trên hạ tầng <strong className="text-[#111625]">Google Cloud</strong> &amp;{' '}

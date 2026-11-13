@@ -126,11 +126,11 @@ export function MaskedLine({
   className?: string;
 }) {
   return (
-    <span className={`block overflow-hidden ${className}`}>
+    <span className={`block overflow-hidden pb-0.5 ${className}`}>
       <motion.span
-        initial={{ y: '28%', opacity: 0.92 }}
+        initial={{ y: '100%', opacity: 0 }}
         animate={{ y: '0%', opacity: 1 }}
-        transition={{ duration: 0.42, delay: delay * 0.55, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] }}
         className="block will-change-transform"
       >
         {children}
@@ -140,13 +140,13 @@ export function MaskedLine({
 }
 
 /**
- * GPU-composited gradual scroll entrance (translate3d + opacity only, zero blur/reflow).
+ * GPU-composited gradual scroll entrance with smooth spring-like deceleration and micro-scale.
  * Ensures sections and sub-cards appear progressively as the user scrolls down.
  */
 export function ScrollReveal({
   children,
   delay = 0,
-  y = 26,
+  y = 32,
   className = '',
 }: {
   children: ReactNode;
@@ -156,10 +156,10 @@ export function ScrollReveal({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.16 }}
-      transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, y, scale: 0.985 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0.14 }}
+      transition={{ duration: 0.62, delay, ease: [0.16, 1, 0.3, 1] }}
       className={`will-change-transform ${className}`}
     >
       {children}

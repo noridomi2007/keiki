@@ -353,20 +353,20 @@ export function AuditWorkbench() {
     <TooltipProvider>
       <Card className="min-w-0 gap-0 overflow-hidden py-0 shadow-xs">
         {/* Top Bar: Scenario Tabs with Shared Motion Pill & Replay */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[#F6F8FB] px-4 py-3 sm:px-6">
+        <div className="flex flex-col items-stretch gap-2.5 border-b border-border bg-[#F6F8FB] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-6">
           <Tabs
             value={selectedId}
             onValueChange={(val) => setSelectedId(val as WorkbenchScenarioId)}
             className="w-full sm:w-auto"
           >
-            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-slate-200/75 p-1 sm:w-auto">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-slate-200/75 p-1 sm:inline-flex sm:w-auto sm:flex-wrap sm:justify-start">
               {TAB_ITEMS.map((item) => {
                 const isActive = selectedId === item.id;
                 return (
                   <TabsTrigger
                     key={item.id}
                     value={item.id}
-                    className={`relative h-8 cursor-pointer gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors data-active:bg-transparent data-active:shadow-none ${
+                    className={`relative h-8 w-full cursor-pointer justify-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors data-active:bg-transparent data-active:shadow-none sm:w-auto sm:px-3 ${
                       isActive ? 'text-[#2E2396]' : 'text-[#334155] hover:text-[#111625]'
                     }`}
                   >
@@ -401,7 +401,7 @@ export function AuditWorkbench() {
                     variant="outline"
                     size="sm"
                     onClick={() => setReplayNonce((n) => n + 1)}
-                    className="h-8 text-xs font-semibold text-[#2E2396]"
+                    className="h-8 self-start text-xs font-semibold text-[#2E2396] sm:self-center"
                   />
                 }
               >
@@ -413,7 +413,10 @@ export function AuditWorkbench() {
               </TooltipContent>
             </Tooltip>
           ) : (
-            <Badge variant="outline" className="border-[#2E2396]/30 bg-white font-mono text-[#2E2396]">
+            <Badge
+              variant="outline"
+              className="self-start border-[#2E2396]/30 bg-white font-mono text-[#2E2396] sm:self-center"
+            >
               Thử chỉnh số xem kiểm tra trực tiếp
             </Badge>
           )}
@@ -701,7 +704,7 @@ export function AuditWorkbench() {
                 {isSandbox ? (
                   /* Linear Code-Diff Style Deterministic Audit Feed */
                   <div className="overflow-hidden border border-border bg-white">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-4 py-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-3.5 py-2.5 sm:px-4">
                       <span className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-[#111625]">
                         <AppIcon name="terminal" className="text-sm text-[#2E2396]" />
                         python_auditor.py — Kiểm toán trực tiếp
@@ -711,7 +714,7 @@ export function AuditWorkbench() {
                       </Badge>
                     </div>
                     <div className="divide-y divide-border font-mono text-xs">
-                      <div className="flex items-center justify-between gap-2 bg-emerald-50/55 px-4 py-2 text-[#0B6E54]">
+                      <div className="flex flex-col gap-0.5 bg-emerald-50/55 px-3.5 py-2 text-[#0B6E54] sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-4">
                         <span>+ computed_total_vnd</span>
                         <span className="font-bold tabular-nums">
                           {sandboxQty} × {formatCurrencyVi(sandboxUnitPrice)} ={' '}
@@ -719,7 +722,7 @@ export function AuditWorkbench() {
                         </span>
                       </div>
                       <div
-                        className={`flex items-center justify-between gap-2 px-4 py-2 ${
+                        className={`flex flex-col gap-0.5 px-3.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-4 ${
                           hasPriceShock
                             ? 'bg-amber-50 text-[#92400E]'
                             : 'bg-white text-[#475569]'
@@ -732,7 +735,7 @@ export function AuditWorkbench() {
                         </span>
                       </div>
                       <div
-                        className={`flex items-center justify-between gap-2 px-4 py-2 ${
+                        className={`flex flex-col gap-0.5 px-3.5 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-4 ${
                           sandboxSimulateDup
                             ? 'bg-red-50 text-[#B91C1C]'
                             : 'bg-white text-[#475569]'
@@ -776,7 +779,7 @@ export function AuditWorkbench() {
 
                 {/* Simulated Vietnamese Lined Ledger Row ("Sổ Ô Ly") */}
                 <div className="notebook-ledger overflow-hidden border-t border-b border-border">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#FFFDF5] px-4 py-2.5 pl-16">
+                  <div className="flex flex-col items-start gap-1 border-b border-border bg-[#FFFDF5] px-4 py-2.5 pl-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2 sm:pl-16">
                     <span className="text-xs font-bold text-[#111625]">
                       Kết quả dự kiến trên Sổ Kế toán Ô Ly
                     </span>
@@ -787,12 +790,12 @@ export function AuditWorkbench() {
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap items-start gap-3 px-4 py-4 sm:flex-nowrap">
-                    <div className="w-16 shrink-0 text-center">
+                  <div className="flex flex-col gap-2.5 px-4 py-3.5 pl-6 sm:flex-row sm:flex-nowrap sm:items-start sm:gap-3 sm:py-4 sm:pl-4">
+                    <div className="flex items-center gap-2 sm:block sm:w-16 sm:shrink-0 sm:text-center">
                       <div className="font-mono text-xs font-bold text-[#111625] tabular-nums">
                         12/11
                       </div>
-                      <div className="mt-1 inline-block rounded bg-slate-200/80 px-2 py-0.5 text-xs font-semibold text-[#111625]">
+                      <div className="inline-block rounded bg-slate-200/80 px-2 py-0.5 text-xs font-semibold text-[#111625] sm:mt-1">
                         {isSandbox
                           ? sandboxSimulateDup
                             ? 'CK/QR'
@@ -801,7 +804,7 @@ export function AuditWorkbench() {
                       </div>
                     </div>
 
-                    <div className="min-w-0 flex-1 pl-2">
+                    <div className="min-w-0 flex-1 sm:pl-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-bold text-[#111625]">
                           {isSandbox
@@ -835,7 +838,7 @@ export function AuditWorkbench() {
                       </div>
                     </div>
 
-                    <div className="shrink-0 text-right">
+                    <div className="flex items-center justify-between border-t border-border/60 pt-2.5 sm:block sm:shrink-0 sm:border-0 sm:pt-0 sm:text-right">
                       <div
                         className={`font-mono text-base font-extrabold tabular-nums ${
                           !isSandbox && scenario.ledgerRow.isRevenue
@@ -850,7 +853,7 @@ export function AuditWorkbench() {
                         )}
                       </div>
 
-                      <div className="mt-2 min-h-[28px]">
+                      <div className="min-h-[28px] sm:mt-2">
                         {isSandbox ? (
                           sandboxPassed ? (
                             <span className="stamp-drop inline-block">

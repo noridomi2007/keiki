@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -82,9 +83,12 @@ export function ReviewPage({ allTransactions, onUpdated }: ReviewPageProps) {
 
   return (
     <div className="space-y-5">
-      <Card className="border-[#B91C1C]/25 bg-[#FFF8F8] p-4 sm:p-5">
+      <Card className="border-[#B91C1C]/25 bg-gradient-to-r from-[#FFF8F8] via-white to-[#FFF8F8] p-4 shadow-xs sm:p-5">
         <div className="flex items-start gap-3">
-          <AppIcon name="notification_important" className="mt-0.5 text-2xl text-[#B91C1C]" />
+          <div className="relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-[#B91C1C]">
+            <AppIcon name="notification_important" className="text-xl" />
+            <span className="audit-live-dot -top-1 -right-1 absolute h-2.5 w-2.5 rounded-full bg-[#B91C1C]" />
+          </div>
           <div className="min-w-0">
             <h2 className="font-heading text-lg font-bold text-[#111625]">
               Keiki cần hỏi lại cô/chú ({reviewItems.length} chứng từ)
@@ -104,7 +108,13 @@ export function ReviewPage({ allTransactions, onUpdated }: ReviewPageProps) {
           : null;
 
         return (
-          <Card key={tx.id} className="gap-0 border-[#B91C1C]/45 py-0">
+          <motion.div
+            key={tx.id}
+            initial={{ opacity: 0, y: 16, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.36, delay: Math.min(index * 0.08, 0.32), ease: [0.16, 1, 0.3, 1] }}
+          >
+          <Card className="card-interactive gap-0 overflow-hidden border-[#B91C1C]/45 py-0 shadow-sm">
             {/* Proactive Question Header with Read-Aloud Button */}
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border bg-[#FEF08A]/55 p-4 sm:p-5">
               <div className="min-w-0 flex-1">
@@ -350,6 +360,7 @@ export function ReviewPage({ allTransactions, onUpdated }: ReviewPageProps) {
               </div>
             </div>
           </Card>
+          </motion.div>
         );
       })}
     </div>

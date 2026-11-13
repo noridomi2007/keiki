@@ -81,7 +81,12 @@ export function StepwiseTransform() {
   });
 
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
-    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    if (
+      typeof window === 'undefined' ||
+      window.innerWidth < 1024 ||
+      document.querySelector('.mobile-preview-frame')
+    )
+      return;
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     const nextIdx = Math.min(STAGES.length - 1, Math.max(0, Math.floor(latest * STAGES.length * 0.999)));
     setStageIdx((prev) => (prev === nextIdx ? prev : nextIdx));
@@ -91,7 +96,12 @@ export function StepwiseTransform() {
 
   const selectStage = (idx: number) => {
     setStageIdx(idx);
-    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
+    if (
+      typeof window === 'undefined' ||
+      window.innerWidth < 1024 ||
+      document.querySelector('.mobile-preview-frame')
+    )
+      return;
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
@@ -112,7 +122,7 @@ export function StepwiseTransform() {
   return (
     <div ref={trackRef} className="lg:relative lg:min-h-[210vh]">
       <div className="lg:sticky lg:top-20">
-        <Card className="min-w-0 gap-0 overflow-hidden py-0 shadow-xs">
+        <Card className="card-interactive min-w-0 gap-0 overflow-hidden border-[#2E2396]/15 py-0 shadow-md shadow-slate-900/5">
           {/* Desktop Scroll-Driven GPU Progress Line */}
           <div className="relative h-1 w-full overflow-hidden bg-slate-100">
             <motion.div
@@ -127,11 +137,11 @@ export function StepwiseTransform() {
           </div>
 
           {/* Top 4-Stage Step Selector Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[#F6F8FB] px-4 py-3 sm:px-6">
+          <div className="flex flex-col items-stretch gap-2.5 border-b border-border bg-[#F6F8FB] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-6">
             <div
               role="tablist"
               aria-label="Hành trình xử lý một tờ hóa đơn"
-              className="flex flex-wrap items-center gap-1 rounded-lg bg-slate-200/75 p-1"
+              className="grid w-full grid-cols-2 gap-1 rounded-lg bg-slate-200/75 p-1 sm:flex sm:w-auto sm:flex-wrap sm:items-center"
             >
               {STAGES.map((stage, idx) => {
                 const active = idx === stageIdx;
@@ -142,7 +152,7 @@ export function StepwiseTransform() {
                     role="tab"
                     aria-selected={active}
                     onClick={() => selectStage(idx)}
-                    className={`relative inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors ${
+                    className={`relative inline-flex min-h-8 cursor-pointer items-center justify-start gap-1.5 rounded-md px-2.5 py-1.5 text-left text-xs font-semibold transition-colors sm:h-8 sm:justify-center sm:px-3 sm:py-0 ${
                       active ? 'text-[#2E2396]' : 'text-[#334155] hover:text-[#111625]'
                     }`}
                   >
@@ -162,7 +172,7 @@ export function StepwiseTransform() {
               })}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               <span className="hidden font-mono text-xs text-[#475569] xl:inline">
                 Cuộn trang hoặc bấm chọn
               </span>
@@ -171,7 +181,7 @@ export function StepwiseTransform() {
                 variant="outline"
                 size="sm"
                 onClick={handleNext}
-                className="h-8 text-xs font-bold text-[#2E2396]"
+                className="h-8 w-full text-xs font-bold text-[#2E2396] sm:w-auto"
               >
                 <span>{stageIdx === STAGES.length - 1 ? 'Xem lại từ đầu' : 'Bước tiếp theo'}</span>
                 <AppIcon name="arrow_forward" className="text-sm" />
@@ -230,18 +240,19 @@ export function StepwiseTransform() {
                 {current.id === 'raw' && (
                   <motion.div
                     key="stage-raw"
-                    initial={{ opacity: 0, y: 12, scale: 0.985 }}
+                    initial={{ opacity: 0, y: 14, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.99 }}
-                    transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                    exit={{ opacity: 0, y: -10, scale: 0.99 }}
+                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
                     className="space-y-4"
                   >
-                    <div className="bg-[#FFFDF5] p-5 font-mono text-xs leading-relaxed text-[#111625]">
-                      <div className="flex items-center justify-between border-b border-dashed border-slate-300 pb-2 text-[#475569]">
+                    <div className="relative overflow-hidden rounded-xl border border-amber-200/70 bg-[#FFFDF5] p-5 font-mono text-xs leading-relaxed text-[#111625] shadow-xs">
+                      <div aria-hidden="true" className="scan-beam" />
+                      <div className="relative z-10 flex items-center justify-between border-b border-dashed border-slate-300 pb-2 text-[#475569]">
                         <span>PHIẾU GIAO HÀNG #104</span>
                         <span>12/11/2026</span>
                       </div>
-                      <div className="mt-3 space-y-1.5">
+                      <div className="relative z-10 mt-3 space-y-1.5">
                         <div className="font-bold">Đại lý Cà phê Minh Phát</div>
                         <div>- Ca phe hat rang xay: 5kg x 180k = 900.000</div>
                         <div className="text-[#475569]">Thanh toán: Tiền mặt • Đã giao hàng</div>
@@ -279,7 +290,7 @@ export function StepwiseTransform() {
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.22, delay: rIdx * 0.06 }}
-                        className="flex items-center justify-between px-4 py-3"
+                        className="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2"
                       >
                         <span className="text-[#475569]">{row.k}</span>
                         <span
@@ -325,13 +336,15 @@ export function StepwiseTransform() {
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.22, delay: cIdx * 0.08 }}
-                        className="flex items-center justify-between px-4 py-3.5"
+                        className="flex flex-col items-start gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                       >
-                        <div>
+                        <div className="min-w-0">
                           <div className="font-bold text-[#111625]">{chk.t}</div>
                           <div className="mt-0.5 text-[#475569]">{chk.d}</div>
                         </div>
-                        <Badge variant="emerald">{chk.b}</Badge>
+                        <Badge variant="emerald" className="self-start shrink-0 sm:self-center">
+                          {chk.b}
+                        </Badge>
                       </motion.div>
                     ))}
                   </motion.div>
@@ -344,10 +357,10 @@ export function StepwiseTransform() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -8, scale: 0.99 }}
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="notebook-ledger border-t border-b border-border p-5 pl-16"
+                    className="notebook-ledger border-t border-b border-border p-4 pl-6 sm:p-5 sm:pl-16"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
+                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                      <div className="min-w-0">
                         <div className="font-mono text-xs font-semibold text-[#475569]">
                           S2-HKD • 12/11/2026 • Tiền mặt
                         </div>
@@ -358,11 +371,11 @@ export function StepwiseTransform() {
                           Cà phê hạt rang xay (5 kg × 180.000 đ) • Đã đính kèm ảnh phiếu #104
                         </div>
                       </div>
-                      <div className="shrink-0 text-right">
+                      <div className="flex items-center justify-between border-t border-border/60 pt-2.5 sm:block sm:shrink-0 sm:border-0 sm:pt-0 sm:text-right">
                         <div className="font-mono text-base font-extrabold text-[#111625] tabular-nums">
                           -900.000 đ
                         </div>
-                        <div className="mt-1.5">
+                        <div className="sm:mt-1.5">
                           <Stamp animate={true} />
                         </div>
                       </div>

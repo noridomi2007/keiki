@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { api } from '../api/endpoints';
+import { OdometerNumber } from '../components/OdometerNumber';
 import { vi } from '../i18n/vi';
 import type { ReportResponse } from '../types/contract';
 import { formatVnd } from '../utils/money';
@@ -67,39 +69,59 @@ export function ReportPage() {
   }
 
   const maxTopItem = Math.max(...report.top_items.map((i) => i.total_vnd), 1);
+  const ratioPct = Math.max(0, Math.min(100, report.loan_readiness.verified_ratio_pct));
+  const gaugeRadius = 42;
+  const gaugeCircumference = 2 * Math.PI * gaugeRadius;
+  const gaugeDashOffset = gaugeCircumference * (1 - ratioPct / 100);
 
   return (
     <div className="space-y-5">
-      {/* KPI Cards */}
+      {/* KPI Cards with Odometer Numbers & Gradient Top Accents */}
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="gap-1 p-4">
-          <div className="text-xs font-bold text-[#475569]">Doanh thu trong kỳ</div>
+        <Card className="card-interactive relative gap-1 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-[#0B6E54] to-emerald-400" />
+          <div className="flex items-center justify-between text-xs font-bold text-[#475569]">
+            <span>Doanh thu trong kỳ</span>
+            <AppIcon name="trending_up" className="text-base text-[#0B6E54]" />
+          </div>
           <div className="font-heading text-xl font-extrabold text-[#0B6E54] tabular-nums">
-            {formatVnd(report.totals.revenue_vnd)}
+            <OdometerNumber value={formatVnd(report.totals.revenue_vnd)} />
           </div>
           <div className="text-xs text-[#475569]">Sổ S1-HKD (Đã ghi sổ)</div>
         </Card>
 
-        <Card className="gap-1 p-4">
-          <div className="text-xs font-bold text-[#475569]">Chi phí sản xuất KD</div>
+        <Card className="card-interactive relative gap-1 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-[#B91C1C] to-rose-400" />
+          <div className="flex items-center justify-between text-xs font-bold text-[#475569]">
+            <span>Chi phí sản xuất KD</span>
+            <AppIcon name="receipt_long" className="text-base text-[#B91C1C]" />
+          </div>
           <div className="font-heading text-xl font-extrabold text-[#B91C1C] tabular-nums">
-            {formatVnd(report.totals.expense_vnd)}
+            <OdometerNumber value={formatVnd(report.totals.expense_vnd)} />
           </div>
           <div className="text-xs text-[#475569]">Sổ S2-HKD &amp; S3-HKD</div>
         </Card>
 
-        <Card className="gap-1 p-4">
-          <div className="text-xs font-bold text-[#475569]">Lợi nhuận ròng tạm tính</div>
+        <Card className="card-interactive relative gap-1 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-[#2E2396] to-indigo-400" />
+          <div className="flex items-center justify-between text-xs font-bold text-[#475569]">
+            <span>Lợi nhuận ròng tạm tính</span>
+            <AppIcon name="account_balance_wallet" className="text-base text-[#2E2396]" />
+          </div>
           <div className="font-heading text-xl font-extrabold text-[#2E2396] tabular-nums">
-            {formatVnd(report.totals.profit_vnd)}
+            <OdometerNumber value={formatVnd(report.totals.profit_vnd)} />
           </div>
           <div className="text-xs text-[#475569]">Doanh thu − Chi phí</div>
         </Card>
 
-        <Card className="gap-1 p-4">
-          <div className="text-xs font-bold text-[#475569]">Thuế HKD ước tính (TT 152)</div>
+        <Card className="card-interactive relative gap-1 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-amber-500 to-orange-400" />
+          <div className="flex items-center justify-between text-xs font-bold text-[#475569]">
+            <span>Thuế HKD ước tính (TT 152)</span>
+            <AppIcon name="calculate" className="text-base text-[#92400E]" />
+          </div>
           <div className="font-heading text-xl font-extrabold text-[#92400E] tabular-nums">
-            {formatVnd(report.totals.estimated_tax_vnd)}
+            <OdometerNumber value={formatVnd(report.totals.estimated_tax_vnd)} />
           </div>
           <div className="text-xs text-[#475569]">GTGT + TNCN theo nhóm ngành</div>
         </Card>
@@ -155,11 +177,36 @@ export function ReportPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white px-5 py-3 text-center ring-1 ring-[#0B6E54]/20">
-            <div className="font-heading text-3xl font-extrabold text-[#0B6E54] tabular-nums">
-              {report.loan_readiness.verified_ratio_pct}%
+          <div className="relative flex flex-col items-center justify-center rounded-2xl bg-white px-5 py-4 text-center shadow-xs ring-1 ring-[#0B6E54]/20">
+            <div className="relative flex h-24 w-24 items-center justify-center">
+              <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={gaugeRadius}
+                  fill="none"
+                  stroke="#E2E8F0"
+                  strokeWidth="8"
+                />
+                <motion.circle
+                  cx="50"
+                  cy="50"
+                  r={gaugeRadius}
+                  fill="none"
+                  stroke="#0B6E54"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={gaugeCircumference}
+                  initial={{ strokeDashoffset: gaugeCircumference }}
+                  animate={{ strokeDashoffset: gaugeDashOffset }}
+                  transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </svg>
+              <div className="font-heading absolute text-2xl font-extrabold text-[#0B6E54] tabular-nums">
+                <OdometerNumber value={`${ratioPct}%`} />
+              </div>
             </div>
-            <div className="text-xs font-bold text-[#475569]">Chứng từ hợp lệ</div>
+            <div className="mt-1 text-xs font-bold text-[#475569]">Chứng từ hợp lệ</div>
           </div>
         </div>
       </Card>
@@ -274,10 +321,12 @@ export function ReportPage() {
                       {formatVnd(item.total_vnd)}
                     </span>
                   </div>
-                  <div className="mt-1.5 h-2 w-full rounded-full bg-slate-100">
-                    <div
-                      className="h-2 rounded-full bg-[#2E2396]"
-                      style={{ width: `${widthPct}%` }}
+                  <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <motion.div
+                      initial={{ width: '0%' }}
+                      animate={{ width: `${widthPct}%` }}
+                      transition={{ duration: 0.7, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                      className="h-2.5 rounded-full bg-gradient-to-r from-[#2E2396] via-[#4F46E5] to-[#0B6E54]"
                     />
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -266,7 +267,7 @@ export function App() {
             </div>
           </div>
 
-          {/* Desktop Navigation Bar */}
+          {/* Desktop Navigation Bar with Sliding Spring Pill */}
           {!mobilePreview && (
             <div className="mx-auto hidden max-w-7xl border-t border-border px-4 lg:flex lg:gap-2 lg:py-2">
               {(
@@ -275,59 +276,91 @@ export function App() {
                   ['review', vi.tabs.review, 'fact_check', pendingCount],
                   ['report', vi.tabs.report, 'monitoring', 0],
                 ] as const
-              ).map(([key, label, icon, badge]) => (
-                <Button
-                  key={key}
-                  type="button"
-                  variant={activeTab === key ? 'default' : 'ghost'}
-                  onClick={() => setActiveTab(key as ActiveTab)}
-                  className="h-10 gap-2 rounded-xl px-4 text-sm font-bold"
-                >
-                  <AppIcon name={icon} className="text-lg" />
-                  <span>{label}</span>
-                  {badge > 0 && (
-                    <Badge variant="destructive" className="ml-0.5 bg-[#B91C1C] text-white">
-                      {badge}
-                    </Badge>
-                  )}
-                </Button>
-              ))}
+              ).map(([key, label, icon, badge]) => {
+                const isActive = activeTab === key || (activeTab === 'add' && key === 'ledger');
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveTab(key as ActiveTab)}
+                    className={`relative inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl px-4 text-sm font-bold transition-colors ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-[#475569] hover:bg-slate-100 hover:text-[#111625]'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="desktop-nav-active"
+                        transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                        className="absolute inset-0 rounded-xl bg-[#2E2396] shadow-sm shadow-[#2E2396]/25"
+                      />
+                    )}
+                    <span className="relative z-10 inline-flex items-center gap-2">
+                      <AppIcon name={icon} className="text-lg" />
+                      <span>{label}</span>
+                      {badge > 0 && (
+                        <Badge variant="destructive" className="ml-0.5 bg-[#B91C1C] text-white">
+                          {badge}
+                        </Badge>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </header>
 
-        {statusBanner && (
-          <div className="mx-auto mt-3 w-full max-w-7xl px-3 sm:px-4">
-            <div className="flex items-center gap-2 rounded-xl border border-[#0B6E54]/30 bg-emerald-50 px-3.5 py-2.5 text-xs font-bold text-[#0B6E54]">
-              <AppIcon name="check_circle" className="text-base" />
-              <span>{statusBanner}</span>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {statusBanner && (
+            <motion.div
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="mx-auto mt-3 w-full max-w-7xl px-3 sm:px-4"
+            >
+              <div className="flex items-center gap-2 rounded-xl border border-[#0B6E54]/30 bg-emerald-50/95 px-3.5 py-2.5 text-xs font-bold text-[#0B6E54] shadow-xs backdrop-blur">
+                <AppIcon name="check_circle" className="text-base" />
+                <span>{statusBanner}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Main Content */}
         <main className="mx-auto w-full max-w-7xl flex-1 px-3 py-4 sm:px-4 sm:py-5">
           {mobilePreview ? (
-            <div className="space-y-4">
-              {activeTab === 'add' && (
-                <AddPage
-                  onTransactionCreated={() => loadData()}
-                  onOpenReviewTab={() => setActiveTab('review')}
-                  onOpenLedgerTab={() => setActiveTab('ledger')}
-                />
-              )}
-              {activeTab === 'ledger' && (
-                <LedgerPage
-                  transactions={transactions}
-                  onRefresh={loadData}
-                  onSelectReviewItem={() => setActiveTab('review')}
-                />
-              )}
-              {activeTab === 'review' && (
-                <ReviewPage allTransactions={transactions} onUpdated={loadData} />
-              )}
-              {activeTab === 'report' && <ReportPage />}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`mobile-${activeTab}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="space-y-4"
+              >
+                {activeTab === 'add' && (
+                  <AddPage
+                    onTransactionCreated={() => loadData()}
+                    onOpenReviewTab={() => setActiveTab('review')}
+                    onOpenLedgerTab={() => setActiveTab('ledger')}
+                  />
+                )}
+                {activeTab === 'ledger' && (
+                  <LedgerPage
+                    transactions={transactions}
+                    onRefresh={loadData}
+                    onSelectReviewItem={() => setActiveTab('review')}
+                  />
+                )}
+                {activeTab === 'review' && (
+                  <ReviewPage allTransactions={transactions} onUpdated={loadData} />
+                )}
+                {activeTab === 'report' && <ReportPage />}
+              </motion.div>
+            </AnimatePresence>
           ) : (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               <div
@@ -347,17 +380,27 @@ export function App() {
                   activeTab === 'add' ? 'hidden lg:block' : 'block'
                 }`}
               >
-                {(activeTab === 'ledger' || activeTab === 'add') && (
-                  <LedgerPage
-                    transactions={transactions}
-                    onRefresh={loadData}
-                    onSelectReviewItem={() => setActiveTab('review')}
-                  />
-                )}
-                {activeTab === 'review' && (
-                  <ReviewPage allTransactions={transactions} onUpdated={loadData} />
-                )}
-                {activeTab === 'report' && <ReportPage />}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab === 'add' ? 'ledger' : activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {(activeTab === 'ledger' || activeTab === 'add') && (
+                      <LedgerPage
+                        transactions={transactions}
+                        onRefresh={loadData}
+                        onSelectReviewItem={() => setActiveTab('review')}
+                      />
+                    )}
+                    {activeTab === 'review' && (
+                      <ReviewPage allTransactions={transactions} onUpdated={loadData} />
+                    )}
+                    {activeTab === 'report' && <ReportPage />}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           )}
@@ -396,6 +439,13 @@ export function App() {
             >
               <AppIcon name={icon} className="text-xl" />
               <span className="mt-1 max-w-full truncate text-xs">{label}</span>
+              {activeTab === key && (
+                <motion.span
+                  layoutId="mobile-nav-indicator"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  className="absolute top-0 right-3 left-3 h-[3px] rounded-b-full bg-[#2E2396]"
+                />
+              )}
               {badge > 0 && (
                 <span className="absolute top-1.5 right-3 rounded-full bg-[#B91C1C] px-1.5 py-0.2 text-xs font-extrabold text-white">
                   {badge}
@@ -438,7 +488,7 @@ export function App() {
             </div>
           </div>
 
-          <div className="w-full max-w-[412px] overflow-hidden rounded-[38px] border-[8px] border-slate-800 bg-[#F6F8FB] shadow-2xl">
+          <div className="mobile-preview-frame w-full max-w-[412px] overflow-hidden rounded-[38px] border-[8px] border-slate-800 bg-[#F6F8FB] shadow-2xl">
             <div className="flex items-center justify-center bg-slate-800 py-1.5">
               <div className="h-1.5 w-16 rounded-full bg-slate-600" />
             </div>

@@ -10,7 +10,7 @@ void main() {
 }
 `;
 
-/* Restraint ledger-paper contour shader: archival #F6F8FB lit gently by #2E2396 & #0B6E54 */
+/* Luminous ledger contour shader: silky flowing waves in #2E2396, #4F46E5 & #0B6E54 reacting smoothly to pointer */
 const FRAGMENT_SRC = `
 precision mediump float;
 varying vec2 v_uv;
@@ -24,32 +24,35 @@ void main() {
   vec2 p = vec2((st.x - 0.5) * aspect, st.y - 0.5);
   vec2 m = vec2((u_mouse.x - 0.5) * aspect, (1.0 - u_mouse.y) - 0.5);
 
-  float t = u_time * 0.34;
-  float waveA = sin(p.x * 3.1 + t + cos(p.y * 2.3 - t * 0.7) * 0.85);
-  float waveB = cos(p.y * 4.2 - t * 0.8 + sin(p.x * 2.0 + t * 0.5) * 0.7);
+  float t = u_time * 0.45;
+  float waveA = sin(p.x * 3.4 + t + cos(p.y * 2.5 - t * 0.75) * 0.95);
+  float waveB = cos(p.y * 4.4 - t * 0.85 + sin(p.x * 2.2 + t * 0.6) * 0.8);
+  float waveC = sin((p.x + p.y) * 2.6 - t * 0.55);
   float distMouse = length(p - m);
-  float pointerRipple = exp(-distMouse * 2.7) * 0.58
-                      + sin(distMouse * 15.0 - u_time * 2.4) * exp(-distMouse * 3.3) * 0.36;
+  float pointerRipple = exp(-distMouse * 2.1) * 0.72
+                      + sin(distMouse * 14.0 - u_time * 3.2) * exp(-distMouse * 2.4) * 0.42;
 
-  float field = (waveA * 0.5 + waveB * 0.5) + pointerRipple;
+  float field = (waveA * 0.42 + waveB * 0.38 + waveC * 0.2) + pointerRipple;
 
-  /* Crisp ledger contour lines */
-  float contour = smoothstep(0.068, 0.0, abs(fract(field * 3.1) - 0.5));
+  /* Silky multi-layered topographic contour lines */
+  float contour = smoothstep(0.085, 0.0, abs(fract(field * 3.0) - 0.5));
+  float contourFine = smoothstep(0.045, 0.0, abs(fract(field * 6.0) - 0.5));
   float softGlow = clamp((field + 1.0) * 0.5, 0.0, 1.0);
 
   vec3 paper = vec3(0.9647, 0.9725, 0.9843);
   vec3 indigo = vec3(0.1804, 0.1373, 0.5882);
+  vec3 violet = vec3(0.3098, 0.2745, 0.8980);
   vec3 emerald = vec3(0.0431, 0.4314, 0.3294);
 
-  /* Mask strength softly toward right specimen and top corner, fade cleanly to #F6F8FB at edges */
-  float edgeFade = smoothstep(0.0, 0.14, st.x) * smoothstep(1.0, 0.86, st.x)
-                 * smoothstep(0.0, 0.16, st.y) * smoothstep(1.0, 0.88, st.y);
+  float edgeFade = smoothstep(0.0, 0.08, st.x) * smoothstep(1.0, 0.92, st.x)
+                 * smoothstep(0.0, 0.1, st.y) * smoothstep(1.0, 0.92, st.y);
 
-  vec3 ink = mix(indigo, emerald, smoothstep(0.18, 0.85, st.x) * 0.48);
-  float leftSafety = mix(0.65, 1.0, smoothstep(0.08, 0.62, st.x));
-  float alpha = (contour * 0.055 + softGlow * 0.032 + abs(pointerRipple) * 0.055) * edgeFade * leftSafety;
+  vec3 inkA = mix(indigo, violet, softGlow);
+  vec3 ink = mix(inkA, emerald, smoothstep(0.15, 0.88, st.x) * 0.55 + 0.12 * sin(t));
+  float leftSafety = mix(0.62, 1.0, smoothstep(0.05, 0.55, st.x));
+  float alpha = (contour * 0.13 + contourFine * 0.045 + softGlow * 0.075 + abs(pointerRipple) * 0.14) * edgeFade * leftSafety;
 
-  vec3 col = mix(paper, ink, clamp(alpha, 0.0, 0.105));
+  vec3 col = mix(paper, ink, clamp(alpha, 0.0, 0.26));
   gl_FragColor = vec4(col, 1.0);
 }
 `;

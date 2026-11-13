@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '../api/endpoints';
+import { OdometerNumber } from '../components/OdometerNumber';
 import { Stamp } from '../components/Stamp';
 import { vi } from '../i18n/vi';
 import type { Transaction } from '../types/contract';
@@ -83,32 +85,35 @@ export function LedgerPage({
     <div className="space-y-4">
       {/* Top Summary Ribbon */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <Card className="gap-1 p-4">
+        <Card className="card-interactive relative gap-1 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-[#0B6E54] to-emerald-400" />
           <div className="text-xs font-semibold text-[#475569]">Tổng Thu đã ghi sổ</div>
           <div className="font-heading text-lg font-extrabold text-[#0B6E54] tabular-nums">
-            +{formatVnd(totalRev)}
+            <OdometerNumber value={`+${formatVnd(totalRev)}`} />
           </div>
         </Card>
-        <Card className="gap-1 p-4">
+        <Card className="card-interactive relative gap-1 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-[#B91C1C] to-rose-400" />
           <div className="text-xs font-semibold text-[#475569]">Tổng Chi đã ghi sổ</div>
           <div className="font-heading text-lg font-extrabold text-[#B91C1C] tabular-nums">
-            -{formatVnd(totalExp)}
+            <OdometerNumber value={`-${formatVnd(totalExp)}`} />
           </div>
         </Card>
-        <Card className="flex flex-row flex-wrap items-center justify-between gap-2.5 p-4">
+        <Card className="card-interactive relative flex flex-row flex-wrap items-center justify-between gap-2.5 overflow-hidden p-4">
+          <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-[#2E2396] to-indigo-400" />
           <div className="min-w-0">
             <div className="whitespace-nowrap text-xs font-semibold text-[#475569]">
               Chênh lệch Thu - Chi
             </div>
             <div className="font-heading text-lg font-extrabold text-[#2E2396] tabular-nums">
-              {formatVnd(totalRev - totalExp)}
+              <OdometerNumber value={formatVnd(totalRev - totalExp)} />
             </div>
           </div>
           <Button
             type="button"
             size="sm"
             onClick={() => setShowManualModal(true)}
-            className="h-9 shrink-0 text-xs font-bold"
+            className="btn-shimmer h-9 shrink-0 text-xs font-bold shadow-xs"
           >
             <AppIcon name="edit_note" className="text-base" />
             {vi.actions.manualEntry}
@@ -161,14 +166,17 @@ export function LedgerPage({
         </div>
 
         <div className="divide-y divide-border">
-          {filtered.map((tx) => {
+          {filtered.map((tx, idx) => {
             const isNeedsReview = tx.status === 'needs_review';
             const hasMergedDocs = tx.linked_document_ids && tx.linked_document_ids.length >= 2;
             const docCount = tx.linked_document_ids?.length || (tx.document_id ? 1 : 0);
 
             return (
-              <div
+              <motion.div
                 key={tx.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(idx * 0.035, 0.28), ease: [0.16, 1, 0.3, 1] }}
                 onClick={() => {
                   if (isNeedsReview) {
                     onSelectReviewItem();
@@ -176,17 +184,17 @@ export function LedgerPage({
                     setSelectedTx(tx);
                   }
                 }}
-                className="relative flex cursor-pointer items-start gap-3 px-4 py-3.5 transition hover:bg-[#2E2396]/5"
+                className="group relative flex cursor-pointer flex-col gap-2.5 border-l-[3px] border-l-transparent px-4 py-3.5 transition-all hover:border-l-[#2E2396] hover:bg-[#2E2396]/[0.045] sm:flex-row sm:items-start sm:gap-3"
               >
                 {/* 1px Hairline Date Margin */}
-                <div className="w-16 shrink-0 border-r border-border pr-2 text-center">
+                <div className="flex items-center gap-2 sm:block sm:w-16 sm:shrink-0 sm:border-r sm:border-border sm:pr-2 sm:text-center">
                   <div className="font-mono text-xs font-bold text-[#111625] tabular-nums">
                     {formatDateVi(tx.date).slice(0, 5)}
                   </div>
                   <div className="font-mono text-xs text-[#475569]">
                     {tx.date.slice(0, 4)}
                   </div>
-                  <div className="mt-1">
+                  <div className="sm:mt-1">
                     <span
                       className={`inline-block rounded px-1.5 py-0.5 text-xs font-bold ${
                         tx.payment_method === 'transfer'
@@ -233,7 +241,7 @@ export function LedgerPage({
                   )}
 
                   {tx.items && tx.items.length > 0 && (
-                    <p className="mt-0.5 truncate text-xs text-[#475569]">
+                    <p className="mt-0.5 text-xs text-[#475569] sm:truncate">
                       {tx.items
                         .map((i) => `${i.name} (SL: ${i.quantity} × ${formatVnd(i.unit_price_vnd)})`)
                         .join(' • ')}
@@ -255,7 +263,7 @@ export function LedgerPage({
                 </div>
 
                 {/* Amount & Stamp */}
-                <div className="shrink-0 text-right">
+                <div className="flex items-center justify-between border-t border-border/60 pt-2.5 sm:block sm:shrink-0 sm:border-0 sm:pt-0 sm:text-right">
                   <div
                     className={`font-mono text-base font-extrabold tabular-nums sm:text-lg ${
                       tx.type === 'revenue' ? 'text-[#0B6E54]' : 'text-[#111625]'
@@ -264,7 +272,7 @@ export function LedgerPage({
                     {tx.type === 'revenue' ? '+' : '-'}
                     {formatVnd(tx.amount_vnd)}
                   </div>
-                  <div className="mt-1.5">
+                  <div className="sm:mt-1.5">
                     {tx.status === 'recorded' ? (
                       <Stamp animate={false} />
                     ) : (
@@ -274,7 +282,7 @@ export function LedgerPage({
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

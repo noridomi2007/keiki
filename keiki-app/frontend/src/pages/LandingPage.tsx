@@ -137,24 +137,49 @@ function MetricItem({
   suffix = '',
   label,
   detail,
+  icon,
+  accent,
+  delay = 0,
   active,
 }: {
   value: number;
   suffix?: string;
   label: string;
   detail: string;
+  icon: string;
+  accent: 'indigo' | 'emerald' | 'amber' | 'slate';
+  delay?: number;
   active: boolean;
 }) {
-  const animated = useAnimatedNumber(value, active, 700);
+  const animated = useAnimatedNumber(value, active, 850);
   const formatted = `${value < 10 && value > 0 ? `0${animated}` : animated}${suffix}`;
+  const accentStyles = {
+    indigo: 'from-[#2E2396] to-[#4F46E5] bg-[#2E2396]/10 text-[#2E2396]',
+    emerald: 'from-[#0B6E54] to-emerald-500 bg-emerald-50 text-[#0B6E54]',
+    amber: 'from-amber-500 to-orange-500 bg-amber-50 text-[#92400E]',
+    slate: 'from-slate-700 to-slate-900 bg-slate-100 text-[#111625]',
+  }[accent];
+
   return (
-    <div className="p-5 sm:p-6">
-      <div className="font-heading text-3xl font-extrabold tracking-tight text-[#111625] tabular-nums sm:text-4xl">
-        <OdometerNumber value={formatted} />
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative overflow-hidden p-5 transition-colors hover:bg-[#F6F8FB]/70 sm:p-6"
+    >
+      <div className={`absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r opacity-75 transition-opacity group-hover:opacity-100 ${accentStyles.split(' ').slice(0, 2).join(' ')}`} />
+      <div className="flex items-start justify-between gap-3">
+        <div className="font-heading text-3xl font-extrabold tracking-tight text-[#111625] tabular-nums sm:text-4xl">
+          <OdometerNumber value={formatted} />
+        </div>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 ${accentStyles.split(' ').slice(2).join(' ')}`}>
+          <AppIcon name={icon} className="text-lg" />
+        </span>
       </div>
-      <div className="mt-1.5 text-sm font-bold text-[#2E2396]">{label}</div>
+      <div className="mt-2 text-sm font-bold text-[#2E2396]">{label}</div>
       <p className="mt-1 text-xs leading-relaxed text-[#475569]">{detail}</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -189,8 +214,8 @@ export function LandingPage({
     const rect = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
-    cardTiltX.set(-py * 4.5);
-    cardTiltY.set(px * 4.5);
+    cardTiltX.set(-py * 8);
+    cardTiltY.set(px * 8);
   };
 
   const resetHeroCardTilt = () => {
@@ -262,7 +287,7 @@ export function LandingPage({
                 size="sm"
                 onClick={onOpenMobileModal}
                 title="Mở trên Điện thoại (Mã QR)"
-                className="hidden h-9 px-2.5 text-xs sm:inline-flex"
+                className="h-8 w-8 px-0 text-xs sm:h-9 sm:w-auto sm:px-2.5"
               >
                 <AppIcon name="qr_code_2" className="text-base" />
                 <span className="hidden md:inline">QR</span>
@@ -274,7 +299,7 @@ export function LandingPage({
                 size="sm"
                 onClick={onToggleLargeText}
                 title="Bật chế độ Chữ to dễ đọc"
-                className="h-9 px-2.5 text-xs"
+                className="h-8 w-8 px-0 text-xs sm:h-9 sm:w-auto sm:px-2.5"
               >
                 <AppIcon name="format_size" className="text-base" />
                 <span className="hidden xl:inline">Chữ to</span>
@@ -294,7 +319,7 @@ export function LandingPage({
                 type="button"
                 size="sm"
                 onClick={() => onNavigateLogin('register')}
-                className="h-9 px-3 text-xs"
+                className="h-8 px-2.5 text-xs sm:h-9 sm:px-3"
               >
                 <span>Mở sổ</span>
                 <AppIcon name="arrow_forward" className="text-sm" />
@@ -303,41 +328,71 @@ export function LandingPage({
           </div>
         </header>
 
-        {/* Editorial Asymmetric Hero with Subtle Archival Contour Shader */}
+        {/* Editorial Asymmetric Hero with Luminous Contour Shader & Ambient Aurora */}
         <section
           id="hero-top"
           ref={heroRef}
           className="relative overflow-hidden border-b border-border/60 bg-[#F6F8FB]"
         >
           <HeroShaderCanvas />
+          {/* Ambient Luminous Aurora Orbs + Architectural Dot Matrix */}
+          <div aria-hidden="true" className="dot-matrix-bg pointer-events-none absolute inset-0 opacity-45" />
+          <div
+            aria-hidden="true"
+            className="aurora-orb pointer-events-none -top-24 -left-20 absolute h-80 w-80 rounded-full bg-indigo-500/18 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="aurora-orb-delay pointer-events-none top-16 -right-16 absolute h-96 w-96 rounded-full bg-emerald-500/16 blur-3xl"
+          />
 
-          <div className="relative z-10 mx-auto max-w-6xl px-4 pt-12 pb-14 sm:px-6 lg:pt-16 lg:pb-18">
+          <div className="relative z-10 mx-auto max-w-6xl px-4 pt-10 pb-12 sm:px-6 lg:pt-16 lg:pb-16">
             <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
-              {/* Hero Left: Lusion-style Masked Typography Entrance (visible by default) */}
+              {/* Hero Left: Masked Kinetic Typography Entrance */}
               <motion.div style={{ y: heroLeftY }} className="min-w-0 lg:col-span-6">
-                <h1 className="font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-[#111625] sm:text-5xl">
-                  <MaskedLine delay={0.04}>Chụp hóa đơn.</MaskedLine>
-                  <MaskedLine delay={0.14}>Nói một câu.</MaskedLine>
-                  <MaskedLine delay={0.24}>
-                    <span className="text-[#2E2396]">Sổ sách tự vào đúng dòng.</span>
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#2E2396]/20 bg-white/85 px-3 py-1 text-xs font-bold text-[#2E2396] shadow-xs backdrop-blur-md"
+                >
+                  <span className="audit-live-dot h-2 w-2 rounded-full bg-[#0B6E54]" />
+                  <span>Gemini Vision + Kiểm toán Python • Chuẩn TT 152/2025</span>
+                </motion.div>
+
+                <h1 className="font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-[#111625] sm:text-5xl lg:text-[3.25rem]">
+                  <MaskedLine delay={0.05}>Chụp hóa đơn.</MaskedLine>
+                  <MaskedLine delay={0.16}>Nói một câu.</MaskedLine>
+                  <MaskedLine delay={0.27}>
+                    <span className="text-gradient-animated">Sổ sách tự vào đúng dòng.</span>
                   </MaskedLine>
                 </h1>
 
-                <p className="mt-5 max-w-[58ch] text-base leading-relaxed text-[#475569]">
+                <motion.p
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.34, ease: [0.16, 1, 0.3, 1] }}
+                  className="mt-5 max-w-[58ch] text-base leading-relaxed text-[#475569]"
+                >
                   Bán hàng cả ngày mệt nhoài, tối về khỏi phải lật từng tờ bill cộng tay hay đau đầu
                   chia cột sổ sách. Cứ chụp lại hóa đơn, ảnh chuyển khoản hoặc đọc miệng vài chữ —
                   Keiki tự nhặt số, kiểm lại cho đỡ nhầm lẫn rồi xếp gọn vào đủ 4 cuốn sổ thuế.
-                </p>
+                </motion.p>
 
-                <div className="mt-7 flex flex-wrap items-center gap-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.42, ease: [0.16, 1, 0.3, 1] }}
+                  className="mt-7 flex flex-wrap items-center gap-3"
+                >
                   <Button
                     type="button"
                     size="lg"
                     onClick={() => scrollToSection('thu-nghiem')}
-                    className="h-11 rounded-xl px-5 text-sm font-bold shadow-sm transition-transform hover:-translate-y-0.5 active:translate-y-px"
+                    className="btn-shimmer group h-12 rounded-xl px-6 text-sm font-bold shadow-lg shadow-[#2E2396]/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#2E2396]/35 active:translate-y-px"
                   >
                     <span>Thử bắt lỗi ngay</span>
-                    <AppIcon name="play_arrow" className="text-lg" />
+                    <AppIcon name="play_arrow" className="text-lg transition-transform group-hover:translate-x-0.5" />
                   </Button>
 
                   <Button
@@ -345,25 +400,30 @@ export function LandingPage({
                     variant="outline"
                     size="lg"
                     onClick={() => onNavigateLogin('login')}
-                    className="h-11 rounded-xl bg-white/90 px-5 text-sm font-bold transition-transform hover:-translate-y-0.5 active:translate-y-px"
+                    className="glass-surface h-12 rounded-xl border-[#2E2396]/20 px-6 text-sm font-bold transition-all hover:-translate-y-0.5 hover:border-[#2E2396]/45 hover:bg-white active:translate-y-px"
                   >
                     <AppIcon name="menu_book" className="text-lg text-[#2E2396]" />
                     <span>Vào sổ của quán</span>
                   </Button>
-                </div>
+                </motion.div>
 
                 {/* Live Voice/OCR Parsing Ticker Strip */}
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-white/90 px-3.5 py-2.5 text-xs shadow-xs">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="glass-surface mt-6 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#2E2396]/15 px-3.5 py-2.5 text-xs shadow-sm"
+                >
                   <span className="inline-flex min-w-0 items-center gap-2 font-medium text-[#475569]">
                     <span className="audit-live-dot inline-block h-2 w-2 shrink-0 rounded-full bg-[#0B6E54]" />
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={currentFeed.raw}
-                        initial={{ opacity: 0, y: 4 }}
+                        initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.22 }}
-                        className="truncate text-[#111625]"
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.24 }}
+                        className="truncate font-medium text-[#111625]"
                       >
                         {currentFeed.raw}
                       </motion.span>
@@ -372,75 +432,97 @@ export function LandingPage({
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={`${currentFeed.sheet}-${currentFeed.result}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="shrink-0 font-mono text-xs font-bold text-[#2E2396] tabular-nums"
+                      initial={{ opacity: 0, scale: 0.94 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.94 }}
+                      transition={{ duration: 0.22 }}
+                      className="shrink-0 rounded-md bg-[#2E2396]/8 px-2 py-0.5 font-mono text-xs font-bold text-[#2E2396] tabular-nums"
                     >
                       → {currentFeed.sheet} • {currentFeed.result}
                     </motion.span>
                   </AnimatePresence>
-                </div>
+                </motion.div>
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className="border-[#2E2396]/25 bg-white/80 text-[#2E2396]">
+                  <Badge variant="outline" className="border-[#2E2396]/25 bg-white/85 text-[#2E2396] shadow-2xs">
                     Chuẩn Thông tư 152/2025
                   </Badge>
-                  <Badge variant="secondary">Không cần biết nghiệp vụ kế toán</Badge>
+                  <Badge variant="secondary" className="bg-white/80">
+                    Không cần biết nghiệp vụ kế toán
+                  </Badge>
                 </div>
 
-                <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-5 text-xs">
-                  <div>
+                <div className="mt-6 grid grid-cols-1 gap-3 border-t border-border pt-5 text-xs sm:grid-cols-3 sm:gap-4">
+                  <div className="rounded-xl p-2 transition-colors hover:bg-white/60">
                     <div className="font-bold text-[#111625]">Chặn ghi trùng</div>
                     <div className="mt-0.5 text-[#475569]">Thấy bill trùng QR là hỏi ngay</div>
                   </div>
-                  <div>
+                  <div className="rounded-xl p-2 transition-colors hover:bg-white/60">
                     <div className="font-bold text-[#111625]">Đủ bộ 4 sổ Excel</div>
                     <div className="mt-0.5 text-[#475569]">Kèm luôn gói ảnh hóa đơn gốc</div>
                   </div>
-                  <div>
+                  <div className="rounded-xl p-2 transition-colors hover:bg-white/60">
                     <div className="font-bold text-[#111625]">Sổ ai nấy giữ</div>
                     <div className="mt-0.5 text-[#475569]">Riêng tư theo từng tài khoản</div>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Hero Right: Interactive Ledger Specimen Card */}
+              {/* Hero Right: 3D Interactive Ledger Specimen Card with OCR Scan Beam & Floating Badges */}
               <motion.div
-                initial={{ opacity: 0.96, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.54, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.72, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   y: heroCardY,
                   rotateX: smoothTiltX,
                   rotateY: smoothTiltY,
-                  transformPerspective: 1000,
+                  transformPerspective: 1100,
                 }}
                 onPointerMove={handleHeroCardMove}
                 onPointerLeave={resetHeroCardTilt}
-                className="min-w-0 will-change-transform lg:col-span-6"
+                className="relative min-w-0 will-change-transform lg:col-span-6"
               >
-                <Card className="surface-lift gap-0 py-0 shadow-md">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-4 py-3">
+                {/* Luminous Halo behind specimen card */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none -inset-3 absolute rounded-3xl bg-gradient-to-tr from-[#2E2396]/18 via-indigo-400/10 to-[#0B6E54]/18 blur-2xl"
+                />
+
+                {/* Floating 3D Badge Top-Right (desktop) */}
+                <div className="float-bob pointer-events-none -top-4 -right-3 absolute z-20 hidden items-center gap-1.5 rounded-full border border-[#0B6E54]/30 bg-white/95 px-3 py-1.5 text-xs font-bold text-[#0B6E54] shadow-lg backdrop-blur xl:flex">
+                  <AppIcon name="verified" className="text-sm" />
+                  <span>Python khớp 100%</span>
+                </div>
+
+                {/* Floating 3D Badge Bottom-Left (desktop) */}
+                <div className="float-bob-slow pointer-events-none -bottom-4 -left-3 absolute z-20 hidden items-center gap-1.5 rounded-full border border-[#2E2396]/25 bg-[#111625]/95 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur xl:flex">
+                  <span className="audit-live-dot h-2 w-2 rounded-full bg-emerald-400" />
+                  <span>Quét OCR + VietQR tự động</span>
+                </div>
+
+                <Card className="card-interactive relative gap-0 overflow-hidden border-[#2E2396]/20 bg-white/95 py-0 shadow-xl shadow-[#2E2396]/10">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-gradient-to-r from-[#F6F8FB] via-white to-[#F6F8FB] px-4 py-3">
                     <div className="flex items-center gap-2 text-xs font-bold text-[#111625]">
-                      <AppIcon name="fact_check" className="text-lg text-[#2E2396]" />
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#2E2396]/10 text-[#2E2396]">
+                        <AppIcon name="fact_check" className="text-sm" />
+                      </span>
                       <span>Kiểm chứng sổ thực tế</span>
                     </div>
                     <Tabs
                       value={heroScenario}
                       onValueChange={(val) => setHeroScenario(val as 'clean' | 'duplicate')}
                     >
-                      <TabsList className="h-8 bg-slate-200/70 p-0.5">
+                      <TabsList className="h-8 bg-slate-200/75 p-0.5">
                         <TabsTrigger
                           value="clean"
-                          className="h-7 cursor-pointer px-2.5 text-xs font-bold data-active:bg-[#0B6E54] data-active:text-white"
+                          className="h-7 cursor-pointer px-2.5 text-xs font-bold transition-all data-active:bg-[#0B6E54] data-active:text-white data-active:shadow-xs"
                         >
                           Hợp lệ
                         </TabsTrigger>
                         <TabsTrigger
                           value="duplicate"
-                          className="h-7 cursor-pointer px-2.5 text-xs font-bold data-active:bg-[#B91C1C] data-active:text-white"
+                          className="h-7 cursor-pointer px-2.5 text-xs font-bold transition-all data-active:bg-[#B91C1C] data-active:text-white data-active:shadow-xs"
                         >
                           Trùng chéo VietQR
                         </TabsTrigger>
@@ -448,11 +530,12 @@ export function LandingPage({
                     </Tabs>
                   </div>
 
-                  {/* Ruled Paper Specimen Body */}
-                  <div className="notebook-ledger p-5 pl-16 sm:p-6 sm:pl-20">
-                    <div className="space-y-4">
+                  {/* Ruled Paper Specimen Body with Live OCR Scan Beam */}
+                  <div className="notebook-ledger relative overflow-hidden p-4 pl-6 sm:p-6 sm:pl-20">
+                    <div aria-hidden="true" className="scan-beam" />
+                    <div className="relative z-10 space-y-4">
                       {/* Source 1 */}
-                      <div className="flex items-start justify-between gap-3 border-b border-border pb-3.5">
+                      <div className="flex flex-col gap-2 border-b border-border pb-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                         <div className="min-w-0">
                           <div className="font-mono text-xs font-semibold text-[#475569]">
                             Chứng từ #01 • Ảnh hóa đơn giấy
@@ -464,11 +547,11 @@ export function LandingPage({
                             5 kg × 180.000 đ • Tiền mặt • 12/11/2026
                           </div>
                         </div>
-                        <div className="shrink-0 text-right">
+                        <div className="flex items-center justify-between pt-1 sm:block sm:shrink-0 sm:pt-0 sm:text-right">
                           <div className="font-mono text-sm font-extrabold text-[#111625] tabular-nums">
                             -900.000 đ
                           </div>
-                          <div className="mt-1.5">
+                          <div className="sm:mt-1.5">
                             <Stamp animate={false} />
                           </div>
                         </div>
@@ -479,13 +562,13 @@ export function LandingPage({
                         {heroScenario === 'clean' ? (
                           <motion.div
                             key="clean"
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                            className="bg-emerald-50/90 p-3.5"
+                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                            className="rounded-xl border border-[#0B6E54]/20 bg-emerald-50/90 p-3.5 shadow-2xs"
                           >
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
                               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0B6E54]">
                                 <AppIcon name="calculate" className="text-base" />
                                 Đã kiểm tra xong: Hợp lệ
@@ -502,13 +585,13 @@ export function LandingPage({
                         ) : (
                           <motion.div
                             key="duplicate"
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                             className="space-y-3"
                           >
-                            <div className="flex items-start justify-between gap-3 border-b border-[#B91C1C]/20 pb-3.5">
+                            <div className="flex flex-col gap-1.5 border-b border-[#B91C1C]/20 pb-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                               <div className="min-w-0">
                                 <div className="font-mono text-xs font-bold text-[#B91C1C]">
                                   Chứng từ #02 • Ảnh chụp VietQR (14:22)
@@ -517,18 +600,18 @@ export function LandingPage({
                                   CK: PHAM VAN MINH — "TT ca phe Minh Phat"
                                 </div>
                               </div>
-                              <div className="shrink-0 text-right font-mono text-xs font-extrabold text-[#B91C1C] tabular-nums">
+                              <div className="shrink-0 font-mono text-xs font-extrabold text-[#B91C1C] tabular-nums sm:text-right">
                                 -900.000 đ
                               </div>
                             </div>
 
-                            <div className="bg-red-50/95 p-3.5">
-                              <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="rounded-xl border border-[#B91C1C]/25 bg-red-50/95 p-3.5 shadow-2xs">
+                              <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B91C1C]">
                                   <AppIcon name="compare_arrows" className="text-base" />
                                   Nghi trùng bill chuyển khoản (CROSS_DUPLICATE)
                                 </span>
-                                <Badge variant="destructive" className="font-bold">
+                                <Badge variant="destructive" className="self-start font-bold sm:self-center">
                                   CẦN HỎI LẠI
                                 </Badge>
                               </div>
@@ -562,25 +645,66 @@ export function LandingPage({
               <span aria-hidden="true" className="hidden font-bold text-[#111625] md:inline">+</span>
             </div>
           </div>
+
+          {/* Continuous Live Kinetic Marquee Ribbon */}
+          <div className="marquee-wrap relative z-10 overflow-hidden border-t border-border/80 bg-[#111625] py-2.5 text-xs text-slate-200">
+            <div className="marquee-track flex items-center gap-8 font-mono">
+              {[0, 1].map((dup) => (
+                <div key={dup} className="flex shrink-0 items-center gap-8">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    S1-HKD • Mì Quảng + Trà đá <strong className="text-emerald-300">+820.000 đ</strong>
+                  </span>
+                  <span className="text-slate-500">/</span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                    S2-HKD • Cà phê hạt Minh Phát <strong className="text-white">-900.000 đ</strong>
+                  </span>
+                  <span className="text-slate-500">/</span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                    PRICE_ANOMALY • Cảnh báo tăng +39% <strong className="text-amber-300">Tạm dừng hỏi</strong>
+                  </span>
+                  <span className="text-slate-500">/</span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                    CROSS_DUPLICATE • Bill giấy khớp VietQR <strong className="text-rose-300">Chặn ghi 2 lần</strong>
+                  </span>
+                  <span className="text-slate-500">/</span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    TT 152/2025/TT-BTC • Xuất .XLSX &amp; .ZIP <strong className="text-emerald-300">Sẵn sàng vay vốn</strong>
+                  </span>
+                  <span className="text-slate-500">/</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* Precision Metrics Strip */}
         <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-          <ScrollReveal y={20}>
+          <ScrollReveal y={22}>
             <div
               ref={metricsRef}
-              className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-xs sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+              className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-md shadow-slate-900/5 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
             >
               <MetricItem
                 value={4}
                 label="Cuốn sổ thuế chuẩn mẫu"
                 detail="Tự chia sẵn S1, S2, S3 và bảng chứng minh thu nhập gửi ngân hàng."
+                icon="menu_book"
+                accent="indigo"
+                delay={0.04}
                 active={metricsVisible}
               />
               <MetricItem
                 value={6}
                 label="Lượt dò số trước khi lưu"
                 detail="AI lo đọc chữ khó, còn cộng trừ nhân chia do máy tính tự kiểm lại."
+                icon="shield"
+                accent="emerald"
+                delay={0.1}
                 active={metricsVisible}
               />
               <MetricItem
@@ -588,12 +712,18 @@ export function LandingPage({
                 suffix="%"
                 label="Lưu kèm ảnh hóa đơn gốc"
                 detail="Mỗi dòng thu chi đều gắn lại ảnh chụp, biên lai hoặc file ghi âm ban đầu."
+                icon="photo_library"
+                accent="amber"
+                delay={0.16}
                 active={metricsVisible}
               />
               <MetricItem
                 value={0}
                 label="Lần tự ghi bừa khi thấy lạ"
                 detail="Thấy giá đắt bất thường hay trùng bill là dừng lại hỏi chủ quán trước."
+                icon="rule"
+                accent="slate"
+                delay={0.22}
                 active={metricsVisible}
               />
             </div>
@@ -659,21 +789,24 @@ export function LandingPage({
             </p>
           </ScrollReveal>
 
-          <Card className="min-w-0 gap-0 overflow-hidden py-0">
-            {/* Top Animated Signal Pipeline Strip */}
-            <div className="border-b border-border bg-[#F6F8FB] px-5 py-4 sm:px-8">
-              <div className="grid grid-cols-1 items-center gap-3 md:grid-cols-7">
-                <ScrollReveal y={14} delay={0.05} className="flex items-center gap-2.5 md:col-span-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#2E2396] ring-1 ring-border">
-                    <AppIcon name="photo_camera" className="text-sm" />
-                  </div>
+          <Card className="card-interactive min-w-0 gap-0 overflow-hidden border-[#2E2396]/15 py-0 shadow-md shadow-slate-900/5">
+            {/* Top Animated Signal Pipeline Strip with Traveling Light Packets */}
+            <div className="border-b border-border bg-gradient-to-r from-[#F6F8FB] via-white to-[#F6F8FB] px-4 py-5 sm:px-8">
+              <div className="flex flex-col gap-3.5 md:flex-row md:items-center md:justify-between md:gap-4">
+                <ScrollReveal y={14} delay={0.05} className="flex items-center gap-3">
+                  <motion.div
+                    whileHover={{ scale: 1.08, rotate: -4 }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#2E2396] shadow-xs ring-1 ring-border"
+                  >
+                    <AppIcon name="photo_camera" className="text-base" />
+                  </motion.div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[#111625]">1. Ảnh / Ghi âm gốc</div>
                     <div className="text-xs text-[#475569]">Hóa đơn, VietQR, Thoại</div>
                   </div>
                 </ScrollReveal>
 
-                <div className="hidden items-center justify-center md:flex">
+                <div className="relative hidden min-w-[56px] flex-1 items-center justify-center md:flex">
                   <svg className="h-3 w-full" viewBox="0 0 80 12" fill="none" aria-hidden="true">
                     <line
                       x1="2"
@@ -685,19 +818,29 @@ export function LandingPage({
                       className="signal-flow-line"
                     />
                   </svg>
+                  <motion.span
+                    aria-hidden="true"
+                    animate={{ left: ['4%', '92%'], opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#4F46E5] shadow-[0_0_10px_#4F46E5]"
+                  />
                 </div>
 
-                <ScrollReveal y={14} delay={0.14} className="flex items-center gap-2.5 md:col-span-2">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#2E2396] text-white">
-                    <AppIcon name="psychology" className="text-sm" />
-                  </div>
+                <ScrollReveal y={14} delay={0.14} className="flex items-center gap-3">
+                  <motion.div
+                    animate={{ boxShadow: ['0 0 0 0 rgba(46,35,150,0.35)', '0 0 0 8px rgba(46,35,150,0)', '0 0 0 0 rgba(46,35,150,0)'] }}
+                    transition={{ duration: 2.4, repeat: Infinity }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2E2396] text-white shadow-sm"
+                  >
+                    <AppIcon name="psychology" className="text-base" />
+                  </motion.div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[#111625]">2. Gemini đọc &amp; hiểu ý</div>
                     <div className="text-xs text-[#475569]">Nhặt tên hàng, ngày, số</div>
                   </div>
                 </ScrollReveal>
 
-                <div className="hidden items-center justify-center md:flex">
+                <div className="relative hidden min-w-[56px] flex-1 items-center justify-center md:flex">
                   <svg className="h-3 w-full" viewBox="0 0 80 12" fill="none" aria-hidden="true">
                     <line
                       x1="2"
@@ -709,12 +852,22 @@ export function LandingPage({
                       className="signal-flow-line"
                     />
                   </svg>
+                  <motion.span
+                    aria-hidden="true"
+                    animate={{ left: ['4%', '92%'], opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 1.8, delay: 0.7, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#0B6E54] shadow-[0_0_10px_#0B6E54]"
+                  />
                 </div>
 
-                <ScrollReveal y={14} delay={0.23} className="flex items-center gap-2.5 md:col-span-1">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B6E54] text-white">
-                    <AppIcon name="shield" className="text-sm" />
-                  </div>
+                <ScrollReveal y={14} delay={0.23} className="flex items-center gap-3">
+                  <motion.div
+                    animate={{ boxShadow: ['0 0 0 0 rgba(11,110,84,0.35)', '0 0 0 8px rgba(11,110,84,0)', '0 0 0 0 rgba(11,110,84,0)'] }}
+                    transition={{ duration: 2.4, delay: 0.9, repeat: Infinity }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B6E54] text-white shadow-sm"
+                  >
+                    <AppIcon name="shield" className="text-base" />
+                  </motion.div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-[#111625]">3. Máy tính kiểm số</div>
                     <div className="text-xs text-[#475569]">Đủ sổ S1–S4</div>
@@ -725,7 +878,7 @@ export function LandingPage({
 
             <div className="grid grid-cols-1 lg:grid-cols-12">
               {/* Column 1: AI Comprehension (5 columns) */}
-              <div className="min-w-0 border-b border-border p-6 sm:p-8 lg:col-span-5 lg:border-r lg:border-b-0">
+              <div className="min-w-0 border-b border-border p-5 sm:p-8 lg:col-span-5 lg:border-r lg:border-b-0">
                 <h3 className="font-heading text-lg font-bold text-[#111625]">
                   Nghe hiểu giọng nói 3 miền và hóa đơn chụp vội
                 </h3>
@@ -780,7 +933,7 @@ export function LandingPage({
               </div>
 
               {/* Column 2: Deterministic Python Audit (7 columns) */}
-              <div className="min-w-0 bg-[#F6F8FB]/60 p-6 sm:p-8 lg:col-span-7">
+              <div className="min-w-0 bg-[#F6F8FB]/60 p-5 sm:p-8 lg:col-span-7">
                 <h3 className="font-heading text-lg font-bold text-[#111625]">
                   Bắt gọn 3 lỗi sai sổ hay gặp nhất ngoài quầy
                 </h3>
@@ -797,7 +950,7 @@ export function LandingPage({
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.25 }}
                     transition={{ duration: 0.48, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex flex-col gap-2 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col items-start gap-2.5 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[#111625]">
@@ -808,7 +961,7 @@ export function LandingPage({
                         tiền trong vòng 3 ngày, Keiki hỏi bạn gộp làm một.
                       </p>
                     </div>
-                    <Badge variant="destructive" className="shrink-0 font-mono">
+                    <Badge variant="destructive" className="self-start shrink-0 font-mono sm:self-center">
                       Khỏi tính thuế 2 lần
                     </Badge>
                   </motion.div>
@@ -818,7 +971,7 @@ export function LandingPage({
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.25 }}
                     transition={{ duration: 0.48, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col items-start gap-2.5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[#111625]">
@@ -829,7 +982,7 @@ export function LandingPage({
                         vàng và đọc tiếng Việt nhắc kiểm tra lại.
                       </p>
                     </div>
-                    <Badge variant="amber" className="shrink-0 font-mono">
+                    <Badge variant="amber" className="self-start shrink-0 font-mono sm:self-center">
                       Chặn nhầm giá nhập
                     </Badge>
                   </motion.div>
@@ -839,7 +992,7 @@ export function LandingPage({
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.25 }}
                     transition={{ duration: 0.48, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex flex-col gap-2 py-4 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col items-start gap-2.5 py-4 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                   >
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-[#111625]">
@@ -850,7 +1003,7 @@ export function LandingPage({
                         hoàn toàn ký tự dễ gây lỗi công thức.
                       </p>
                     </div>
-                    <Badge variant="emerald" className="shrink-0 font-mono">
+                    <Badge variant="emerald" className="self-start shrink-0 font-mono sm:self-center">
                       Sẵn sàng dùng thật
                     </Badge>
                   </motion.div>
@@ -901,15 +1054,15 @@ export function LandingPage({
           </ScrollReveal>
 
           <ScrollReveal delay={0.08} y={24}>
-            <Card className="min-w-0 gap-0 overflow-hidden py-0">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-5 py-4">
+            <Card className="card-interactive min-w-0 gap-0 overflow-hidden border-[#2E2396]/15 py-0 shadow-md shadow-slate-900/5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-gradient-to-r from-[#F6F8FB] via-white to-[#F6F8FB] px-5 py-4">
               <div>
                 <h3 className="font-heading text-base font-bold text-[#111625]">
                   {selectedSheet.title}
                 </h3>
                 <p className="mt-0.5 text-xs text-[#475569]">{selectedSheet.subtitle}</p>
               </div>
-              <Badge variant="outline" className="font-mono font-bold text-[#2E2396]">
+              <Badge variant="outline" className="border-[#2E2396]/30 bg-white font-mono font-bold text-[#2E2396]">
                 {selectedSheet.code}
               </Badge>
             </div>
@@ -917,10 +1070,10 @@ export function LandingPage({
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedSheet.code}
-                initial={{ opacity: 0.78, y: 4 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0.78, y: -4 }}
-                transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Table>
                   <TableHeader>
@@ -939,7 +1092,13 @@ export function LandingPage({
                   </TableHeader>
                   <TableBody>
                     {selectedSheet.rows.map((row, rIdx) => (
-                      <TableRow key={rIdx} className="hover:bg-[#F6F8FB]">
+                      <motion.tr
+                        key={`${selectedSheet.code}-${rIdx}`}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.28, delay: rIdx * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                        className="border-b border-border/70 transition-colors hover:bg-[#2E2396]/[0.035]"
+                      >
                         {row.map((cell, cIdx) => {
                           const isLast = cIdx === row.length - 1;
                           const isPositive = cell.startsWith('+');
@@ -956,7 +1115,7 @@ export function LandingPage({
                             </TableCell>
                           );
                         })}
-                      </TableRow>
+                      </motion.tr>
                     ))}
                   </TableBody>
                 </Table>
@@ -1021,8 +1180,14 @@ export function LandingPage({
               </div>
             </ScrollReveal>
 
-            <ScrollReveal delay={0.1} y={26} className="min-w-0 lg:col-span-7">
-              <AuthPanel variant="embedded" onLoginSuccess={onLoginSuccess} />
+            <ScrollReveal delay={0.1} y={26} className="relative min-w-0 lg:col-span-7">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none -inset-2 absolute rounded-3xl bg-gradient-to-br from-[#2E2396]/14 via-transparent to-[#0B6E54]/14 blur-xl"
+              />
+              <div className="relative">
+                <AuthPanel variant="embedded" onLoginSuccess={onLoginSuccess} />
+              </div>
             </ScrollReveal>
           </div>
         </section>

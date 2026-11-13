@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -221,16 +222,17 @@ export function AddPage({
                 type="button"
                 disabled={isUploading || isRunning}
                 onClick={() => receiptInputRef.current?.click()}
-                className="flex w-full cursor-pointer items-center gap-4 rounded-2xl bg-[#2E2396] p-4 text-left text-white shadow-xs transition hover:bg-[#231978] disabled:opacity-60"
+                className="btn-shimmer group relative flex w-full cursor-pointer items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-[#2E2396] via-[#3A2EB5] to-[#2E2396] p-4 text-left text-white shadow-md shadow-[#2E2396]/25 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2E2396]/35 disabled:opacity-60"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                {(isUploading || isRunning) && <div aria-hidden="true" className="scan-beam" />}
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
                   <AppIcon name="photo_camera" className="text-3xl" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="text-base font-bold sm:text-lg">{vi.actions.captureReceipt}</div>
                   <div className="text-xs text-indigo-100">{vi.actions.captureReceiptSub}</div>
                 </div>
-                <AppIcon name="chevron_right" className="text-2xl" />
+                <AppIcon name="chevron_right" className="text-2xl transition-transform group-hover:translate-x-1" />
               </button>
               <div className="flex flex-wrap items-center justify-end gap-2 px-1">
                 <button
@@ -271,9 +273,9 @@ export function AddPage({
               type="button"
               disabled={isUploading || isRunning}
               onClick={handleClipboardButton}
-              className="flex cursor-pointer items-center gap-4 rounded-2xl border border-[#0B6E54]/35 bg-emerald-50/70 p-4 text-left text-[#111625] transition hover:bg-emerald-50 disabled:opacity-60"
+              className="card-interactive group flex cursor-pointer items-center gap-4 rounded-2xl border border-[#0B6E54]/35 bg-gradient-to-r from-emerald-50/85 to-white p-4 text-left text-[#111625] transition hover:border-[#0B6E54]/60 disabled:opacity-60"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0B6E54] text-white">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0B6E54] text-white shadow-xs transition-transform duration-300 group-hover:scale-105">
                 <AppIcon name="content_paste_go" className="text-3xl" />
               </span>
               <div className="min-w-0 flex-1">
@@ -282,7 +284,7 @@ export function AddPage({
                 </div>
                 <div className="text-xs text-[#475569]">{vi.actions.pasteTransferSub}</div>
               </div>
-              <AppIcon name="chevron_right" className="text-2xl text-[#0B6E54]" />
+              <AppIcon name="chevron_right" className="text-2xl text-[#0B6E54] transition-transform group-hover:translate-x-1" />
             </button>
 
             {/* 3. Speak Voice Input */}
@@ -290,18 +292,26 @@ export function AddPage({
               type="button"
               disabled={isUploading || isRunning}
               onClick={() => setVoiceBoxOpen((v) => !v)}
-              className={`flex cursor-pointer items-center gap-4 rounded-2xl border p-4 text-left transition ${
+              className={`card-interactive group flex cursor-pointer items-center gap-4 rounded-2xl border p-4 text-left transition ${
                 isRecording
-                  ? 'border-[#B91C1C] bg-red-50 text-[#B91C1C]'
+                  ? 'border-[#B91C1C] bg-red-50 text-[#B91C1C] shadow-md shadow-red-900/10'
                   : 'border-border bg-[#F6F8FB] text-[#111625] hover:border-[#2E2396]'
               }`}
             >
               <span
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white ${
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white transition-transform duration-300 group-hover:scale-105 ${
                   isRecording ? 'animate-pulse bg-[#B91C1C]' : 'bg-[#2E2396]'
                 }`}
               >
-                <AppIcon name="mic" className="text-3xl" />
+                {isRecording ? (
+                  <span className="flex h-5 items-end gap-1" aria-hidden="true">
+                    <span className="voice-bar h-5 w-1 rounded-full bg-white" />
+                    <span className="voice-bar h-5 w-1 rounded-full bg-white [animation-delay:0.2s]" />
+                    <span className="voice-bar h-5 w-1 rounded-full bg-white [animation-delay:0.4s]" />
+                  </span>
+                ) : (
+                  <AppIcon name="mic" className="text-3xl" />
+                )}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-base font-bold sm:text-lg">
@@ -314,8 +324,16 @@ export function AddPage({
           </div>
 
           {/* Voice Input Panel */}
-          {voiceBoxOpen && (
-            <div className="mt-4 rounded-xl bg-[#F6F8FB] p-4">
+          <AnimatePresence>
+            {voiceBoxOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -8 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 rounded-xl border border-[#2E2396]/15 bg-[#F6F8FB] p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#2E2396]">
                   <AppIcon name="mic" className="text-base" />
@@ -376,8 +394,10 @@ export function AddPage({
                   Gửi câu nói cho Keiki ghi sổ
                 </Button>
               </div>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {errorMsg && (
             <div className="mt-4 flex items-center gap-2 rounded-xl border border-[#B91C1C]/35 bg-red-50 p-3 text-sm font-medium text-[#B91C1C]">
@@ -393,12 +413,12 @@ export function AddPage({
               <AppIcon name="bolt" className="text-sm text-[#2E2396]" />
               Kịch bản kiểm thử nhanh cho SME &amp; Hộ kinh doanh (Bấm 1 chạm):
             </p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <button
                 type="button"
                 disabled={isUploading || isRunning}
                 onClick={() => handleTriggerPreset('receipt_clean')}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-[#0B6E54] hover:bg-emerald-50/50"
+                className="card-interactive flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] hover:border-[#0B6E54] hover:bg-emerald-50/50"
               >
                 <AppIcon name="receipt_long" className="text-xl text-[#0B6E54]" />
                 <div className="min-w-0">
@@ -413,7 +433,7 @@ export function AddPage({
                 type="button"
                 disabled={isUploading || isRunning}
                 onClick={() => handleTriggerPreset('cross_transfer')}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-[#B91C1C] hover:bg-red-50/40"
+                className="card-interactive flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] hover:border-[#B91C1C] hover:bg-red-50/40"
               >
                 <AppIcon name="compare_arrows" className="text-xl text-[#B91C1C]" />
                 <div className="min-w-0">
@@ -433,7 +453,7 @@ export function AddPage({
                     'Hôm nay xuất bán 20 đơn hàng bán lẻ tổng cộng 800 nghìn đồng, khách trả tiền mặt.'
                   )
                 }
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-[#2E2396] hover:bg-indigo-50/50"
+                className="card-interactive flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] hover:border-[#2E2396] hover:bg-indigo-50/50"
               >
                 <AppIcon name="record_voice_over" className="text-xl text-[#2E2396]" />
                 <div className="min-w-0">
@@ -448,7 +468,7 @@ export function AddPage({
                 type="button"
                 disabled={isUploading || isRunning}
                 onClick={() => handleTriggerPreset('price_anomaly')}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-amber-600 hover:bg-amber-50/50"
+                className="card-interactive flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] hover:border-amber-600 hover:bg-amber-50/50"
               >
                 <AppIcon name="trending_up" className="text-xl text-[#92400E]" />
                 <div className="min-w-0">

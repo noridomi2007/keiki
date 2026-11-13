@@ -3,6 +3,41 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant sm {
+  @media (width >= 40rem) {
+    &:not(.mobile-preview-frame *) {
+      @slot;
+    }
+  }
+}
+@custom-variant md {
+  @media (width >= 48rem) {
+    &:not(.mobile-preview-frame *) {
+      @slot;
+    }
+  }
+}
+@custom-variant lg {
+  @media (width >= 64rem) {
+    &:not(.mobile-preview-frame *) {
+      @slot;
+    }
+  }
+}
+@custom-variant xl {
+  @media (width >= 80rem) {
+    &:not(.mobile-preview-frame *) {
+      @slot;
+    }
+  }
+}
+@custom-variant 2xl {
+  @media (width >= 96rem) {
+    &:not(.mobile-preview-frame *) {
+      @slot;
+    }
+  }
+}
 
 :root {
   --color-giay: #F6F8FB;
