@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T19:25:00+07:00",
+  "title": "Design System: Keiki Ledger System",
+  "extensions": {
+    "colorMeta": {
+      "sovereign-indigo": {
+        "role": "primary",
+        "displayName": "Sovereign Indigo",
+        "canonical": "oklch(31% 0.17 272)",
+        "tonalRamp": ["#16114D", "#1E1766", "#231978", "#2E2396", "#463CB3", "#6E67CA", "#A8A4DF", "#E8ECF6"]
+      },
+      "emerald-stamp": {
+        "role": "secondary",
+        "displayName": "Emerald Stamp",
+        "canonical": "oklch(45% 0.11 163)",
+        "tonalRamp": ["#042F24", "#064937", "#085B45", "#0B6E54", "#158F6E", "#3BB392", "#8CD9C3", "#ECFDF5"]
+      },
+      "cinnabar-red": {
+        "role": "tertiary",
+        "displayName": "Cinnabar Red",
+        "canonical": "oklch(47% 0.19 25)",
+        "tonalRamp": ["#450A0A", "#6B1111", "#921616", "#B91C1C", "#DC2626", "#EF4444", "#FCA5A5", "#FEF2F2"]
+      },
+      "amber-ochre": {
+        "role": "tertiary",
+        "displayName": "Amber Ochre",
+        "canonical": "oklch(47% 0.12 65)",
+        "tonalRamp": ["#451A03", "#632907", "#78350F", "#92400E", "#B45309", "#D97706", "#FCD34D", "#FEF9C3"]
+      },
+      "ledger-paper": {
+        "role": "neutral",
+        "displayName": "Ledger Paper",
+        "canonical": "oklch(97.5% 0.005 255)",
+        "tonalRamp": ["#111625", "#334155", "#475569", "#64748B", "#94A3B8", "#CBD5E1", "#D5DCE8", "#F6F8FB"]
+      },
+      "midnight-ink": {
+        "role": "neutral",
+        "displayName": "Midnight Ink",
+        "canonical": "oklch(20% 0.025 262)",
+        "tonalRamp": ["#090C16", "#111625", "#1E2538", "#334155", "#475569", "#64748B", "#94A3B8", "#E2E8F0"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display Headline", "purpose": "Landing hero statements with balanced multi-line wrapping." },
+      "headline": { "displayName": "Section Heading", "purpose": "Primary editorial and workspace section headings." },
+      "title": { "displayName": "Card Title", "purpose": "Audit cards, clarification prompts, and table captions." },
+      "body": { "displayName": "Ledger Prose", "purpose": "Vietnamese conversational prompts, instructions, and line items." },
+      "label": { "displayName": "Status Pill & Nav Label", "purpose": "Badges, stamps, and 12px minimum floor UI labels." },
+      "mono": { "displayName": "Tabular Accounting Mono", "purpose": "VND figures, dates, tax ratios, and Circular 152 sheet IDs." }
+    },
+    "shadows": [
+      { "name": "card-hairline", "value": "0 1px 2px rgba(17, 22, 37, 0.04)", "purpose": "Quiet resting depth on KPI and ledger cards." },
+      { "name": "specimen-depth", "value": "0 4px 16px rgba(17, 22, 37, 0.08)", "purpose": "Hero live ledger specimen and active modal dialogs." }
+    ],
+    "motion": [
+      { "name": "ease-editorial", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Stamping drop, subtle hover lifts, and audit step reveals." },
+      { "name": "duration-stamp", "value": "260ms", "purpose": "Official ĐÃ GHI SỔ stamp drop animation." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Ledger Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary Sovereign Indigo action trigger used for document capture, saving records, and starting onboarding.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z\"/><circle cx=\"12\" cy=\"13\" r=\"3\"/></svg><span>Chụp ảnh hóa đơn</span></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 10px 16px; border-radius: 8px; border: 1px solid transparent; background: #2E2396; color: #FFFFFF; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, transform 120ms ease; } .ds-btn-primary:hover { background: #231978; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid #2E2396; outline-offset: 2px; }"
+    },
+    {
+      "name": "Destructive Reject Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Explicit Cinnabar Red button for rejecting duplicate or invalid vouchers during human review.",
+      "html": "<button class=\"ds-btn-destructive\" type=\"button\">Bỏ qua chứng từ này</button>",
+      "css": ".ds-btn-destructive { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 10px 16px; border-radius: 8px; border: 1px solid transparent; background: #B91C1C; color: #FFFFFF; font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease; } .ds-btn-destructive:hover { background: #991B1B; } .ds-btn-destructive:focus-visible { outline: 2px solid #B91C1C; outline-offset: 2px; }"
+    },
+    {
+      "name": "Verified Ledger Stamp",
+      "kind": "chip",
+      "refersTo": "badge-stamp",
+      "description": "Signature emerald counter stamp certifying audited Circular 152 entries.",
+      "html": "<span class=\"ds-stamp\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"/><path d=\"m9 12 2 2 4-4\"/></svg><span>ĐÃ GHI SỔ</span></span>",
+      "css": ".ds-stamp { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 2px solid rgba(11, 110, 84, 0.6); border-radius: 8px; background: rgba(236, 253, 245, 0.9); color: #0B6E54; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; transform: rotate(-6deg); user-select: none; }"
+    },
+    {
+      "name": "Ledger Metric Card",
+      "kind": "card",
+      "refersTo": "card-ledger",
+      "description": "Flat hairline metric card displaying tabular VND totals on archival surface.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-label\">Tổng Thu đã ghi sổ</div><div class=\"ds-card-value\">+4.300.000 đ</div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 6px; padding: 20px; border: 1px solid #D5DCE8; border-radius: 14px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(17, 22, 37, 0.04); transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease; } .ds-card:hover { transform: translateY(-2px); border-color: #B6C2D6; } .ds-card-label { font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px; font-weight: 600; color: #475569; } .ds-card-value { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 800; color: #0B6E54; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Ledger Search Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Crisp white search and editing input with Sovereign Indigo focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Tìm tên mặt hàng, đại lý, câu ghi âm...\" />",
+      "css": ".ds-input { width: 100%; height: 36px; padding: 6px 12px; border: 1px solid #CBD5E1; border-radius: 8px; background: #FFFFFF; color: #111625; caret-color: #2E2396; font-family: 'Be Vietnam Pro', sans-serif; font-size: 14px; transition: border-color 150ms ease, box-shadow 150ms ease; } .ds-input::placeholder { color: #64748B; } .ds-input:focus { outline: none; border-color: #2E2396; box-shadow: 0 0 0 3px rgba(46, 35, 150, 0.16); }"
+    },
+    {
+      "name": "Mobile 4-Column Bottom Bar",
+      "kind": "nav",
+      "refersTo": "card-ledger",
+      "description": "Equal-width 4-column mobile bottom navigation fitting 390px screens without clipping.",
+      "html": "<nav class=\"ds-bottom-nav\"><button class=\"ds-nav-item ds-nav-active\" type=\"button\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20\"/></svg><span>Sổ kế toán</span></button><button class=\"ds-nav-item\" type=\"button\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 3v18h18\"/><path d=\"M18 17V9\"/><path d=\"M13 17V5\"/><path d=\"M8 17v-3\"/></svg><span>Báo cáo</span></button></nav>",
+      "css": ".ds-bottom-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; border-top: 1px solid #D5DCE8; background: #FFFFFF; } .ds-nav-item { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 4px; border: none; background: transparent; color: #475569; font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; } .ds-nav-item:hover { color: #111625; } .ds-nav-active { background: rgba(232, 236, 246, 0.6); color: #2E2396; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Editorial Ledger Sanctuary",
+    "overview": "Keiki bridges traditional Vietnamese ruled-paper bookkeeping and deterministic Python accounting verification inside an unhurried, high-contrast web workspace. Inspired by fountain-pen ledger books stamped cleanly at shop counters, the interface foregrounds monetary figures, counterparty names, and Circular 152/2025/TT-BTC compliance tables without noisy dashboards or decorative clutter.\n\nEvery screen honors cognitive clarity for shop owners balancing counter rush on mobile (390px), counter tablet (768px), and desktop reconciliation (1440px). Rather than purple-gradient AI templates, deep Sovereign Indigo anchors primary actions, Cinnabar Red flags audit anomalies (CROSS_DUPLICATE, PRICE_ANOMALY), and Emerald Stamp seals verified entries.",
+    "keyCharacteristics": [
+      "Tactile ruled-ledger specimen aesthetic paired with flat hairline card architecture.",
+      "Tabular monospace alignment (tabular-nums) for all VND totals, unit prices, and tax ratios.",
+      "Vietnamese-first typography pairing (Plus Jakarta Sans + Be Vietnam Pro + JetBrains Mono) with full diacritic clarity.",
+      "Offline-resilient bundled inline SVG iconography (lucide-react via AppIcon) with zero external icon webfont dependency."
+    ],
+    "rules": [
+      {
+        "name": "The One Ink Priority Rule",
+        "body": "Primary Sovereign Indigo (#2E2396) occupies at most 10% of the viewport as primary CTAs and active state indicators; routine entries stay in Midnight Ink (#111625) on white or pale ledger paper so Cinnabar Red exceptions and Emerald Stamps demand immediate eye focus.",
+        "section": "colors"
+      },
+      {
+        "name": "The 12px Floor Rule",
+        "body": "No user-facing text, badge, table header, or mobile tab label renders smaller than 12px (0.75rem); an accessible large-text-mode toggle scales the root font size cleanly to 18.5px.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Ledger Rule",
+        "body": "Surfaces remain flat and un-nested at rest; internal groupings use divide-y hairlines or flat tinted bands (#F6F8FB) instead of boxed cards inside cards.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do align every currency amount, percentage, and invoice code using font-mono tabular-nums and right-align table amounts.",
+      "Do bundle every UI icon locally via AppIcon (lucide-react SVGs) so icons never degrade into raw text strings offline.",
+      "Do enforce min-w-0 on CSS Grid and Flexbox columns and overflow-x: clip on html, body to guarantee zero horizontal overflow on 390px screens.",
+      "Do use generous pill padding (min-h-8 px-3.5 py-1.5) and >= 12px text across every control and stamp."
+    ],
+    "donts": [
+      "Don't place unrequested pill eyebrows above section headings or numbered 01 / 02 / 03 kickers above cards.",
+      "Don't nest bordered cards inside other bordered cards; use hairline divide-y lists or flat #F6F8FB tonal bands instead.",
+      "Don't add thick (> 1px) left or right colored accent borders to cards or alert boxes.",
+      "Don't weaken CSP headers or embed hardcoded demo credentials inside client bundles."
+    ]
+  }
+}

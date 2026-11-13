@@ -1,9 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { api } from '../api/endpoints';
 import { AgentTimeline } from '../components/AgentTimeline';
 import { useJobStream } from '../hooks/useJobStream';
 import { vi } from '../i18n/vi';
 import type { DocumentKind, Transaction } from '../types/contract';
+import { AppIcon } from '@/components/AppIcon';
 
 interface AddPageProps {
   onTransactionCreated: (tx?: Transaction) => void;
@@ -114,8 +119,8 @@ export function AddPage({
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : MediaRecorder.isTypeSupported('audio/mp4')
-        ? 'audio/mp4'
-        : '';
+          ? 'audio/mp4'
+          : '';
       const recorder = mimeType
         ? new MediaRecorder(stream, { mimeType })
         : new MediaRecorder(stream);
@@ -156,302 +161,307 @@ export function AddPage({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border-2 border-[#D5DCE8] bg-white p-5 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-[#1B1F2A]">
-              Ghi sổ tự nhiên cùng Trợ lý AI Keiki
-            </h2>
-            <p className="text-sm text-slate-600">
-              Dành cho mọi Doanh nghiệp Vừa & Nhỏ (SME) và Hộ kinh doanh tại Việt Nam
-            </p>
+      <Card className="gap-0 py-0">
+        <CardContent className="p-5 sm:p-6">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 className="font-heading text-xl font-bold tracking-tight text-[#111625]">
+                Ghi sổ tự nhiên cùng Trợ lý AI Keiki
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-[#475569] sm:text-sm">
+                Dành cho mọi Doanh nghiệp Vừa &amp; Nhỏ (SME) và Hộ kinh doanh tại Việt Nam
+              </p>
+            </div>
+            <Badge variant="outline" className="hidden border-[#2E2396]/25 text-[#2E2396] sm:inline-flex">
+              <AppIcon name="verified_user" className="text-sm" />
+              Thông tư 152/2025/TT-BTC
+            </Badge>
           </div>
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#3B2FA8]/10 px-3 py-1 text-xs font-semibold text-[#3B2FA8]">
-            <span className="material-symbols-rounded text-base">verified_user</span>
-            Thông tư 152/2025/TT-BTC
-          </span>
-        </div>
 
-        {/* 3 Big Primary Action Buttons */}
-        <div className="grid grid-cols-1 gap-3.5">
-          {/* 1. Capture Paper Receipt (Rear Camera + Photo Library option for mobile) */}
-          <input
-            ref={receiptInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const f = e.target.files?.[0];
-              if (f) handleFileUpload(f, 'image');
-              e.target.value = '';
-            }}
-          />
-          <input
-            ref={receiptGalleryInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const f = e.target.files?.[0];
-              if (f) handleFileUpload(f, 'image');
-              e.target.value = '';
-            }}
-          />
-          <input
-            ref={mobileAudioInputRef}
-            type="file"
-            accept="audio/*"
-            capture
-            className="hidden"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const f = e.target.files?.[0];
-              if (f) handleFileUpload(f, 'audio', f.name || 'ghi_am_dien_thoai.m4a');
-              e.target.value = '';
-            }}
-          />
-          <div className="space-y-1.5">
-            <button
-              type="button"
-              disabled={isUploading || isRunning}
-              onClick={() => receiptInputRef.current?.click()}
-              className="flex w-full items-center gap-4 rounded-2xl border-2 border-[#3B2FA8] bg-[#3B2FA8] p-4 text-left text-white shadow-sm transition hover:bg-[#2f248a] disabled:opacity-60 cursor-pointer"
-            >
-              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-white/15">
-                <span className="material-symbols-rounded text-3xl">photo_camera</span>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-base sm:text-lg font-bold">{vi.actions.captureReceipt}</div>
-                <div className="text-xs text-indigo-100">{vi.actions.captureReceiptSub}</div>
-              </div>
-              <span className="material-symbols-rounded text-2xl">chevron_right</span>
-            </button>
-            <div className="flex items-center justify-end gap-2 px-1">
+          {/* 3 Big Primary Action Buttons */}
+          <div className="grid grid-cols-1 gap-3.5">
+            <input
+              ref={receiptInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const f = e.target.files?.[0];
+                if (f) handleFileUpload(f, 'image');
+                e.target.value = '';
+              }}
+            />
+            <input
+              ref={receiptGalleryInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const f = e.target.files?.[0];
+                if (f) handleFileUpload(f, 'image');
+                e.target.value = '';
+              }}
+            />
+            <input
+              ref={mobileAudioInputRef}
+              type="file"
+              accept="audio/*"
+              capture
+              className="hidden"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const f = e.target.files?.[0];
+                if (f) handleFileUpload(f, 'audio', f.name || 'ghi_am_dien_thoai.m4a');
+                e.target.value = '';
+              }}
+            />
+
+            <div className="space-y-1.5">
               <button
                 type="button"
                 disabled={isUploading || isRunning}
                 onClick={() => receiptInputRef.current?.click()}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#3B2FA8] hover:underline cursor-pointer"
+                className="flex w-full cursor-pointer items-center gap-4 rounded-2xl bg-[#2E2396] p-4 text-left text-white shadow-xs transition hover:bg-[#231978] disabled:opacity-60"
               >
-                <span className="material-symbols-rounded text-sm">photo_camera</span>
-                Mở Camera sau ĐT
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                  <AppIcon name="photo_camera" className="text-3xl" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-base font-bold sm:text-lg">{vi.actions.captureReceipt}</div>
+                  <div className="text-xs text-indigo-100">{vi.actions.captureReceiptSub}</div>
+                </div>
+                <AppIcon name="chevron_right" className="text-2xl" />
               </button>
-              <span className="text-slate-300">•</span>
+              <div className="flex flex-wrap items-center justify-end gap-2 px-1">
+                <button
+                  type="button"
+                  disabled={isUploading || isRunning}
+                  onClick={() => receiptInputRef.current?.click()}
+                  className="inline-flex cursor-pointer items-center gap-1 text-xs font-bold text-[#2E2396] hover:underline"
+                >
+                  <AppIcon name="photo_camera" className="text-sm" />
+                  Mở Camera sau ĐT
+                </button>
+                <span className="text-slate-300">•</span>
+                <button
+                  type="button"
+                  disabled={isUploading || isRunning}
+                  onClick={() => receiptGalleryInputRef.current?.click()}
+                  className="inline-flex cursor-pointer items-center gap-1 text-xs font-bold text-[#0B6E54] hover:underline"
+                >
+                  <AppIcon name="photo_library" className="text-sm" />
+                  Chọn ảnh hóa đơn từ Album ĐT
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Paste Bank Transfer Screenshot */}
+            <input
+              ref={transferInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const f = e.target.files?.[0];
+                if (f) handleFileUpload(f, 'transfer');
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              disabled={isUploading || isRunning}
+              onClick={handleClipboardButton}
+              className="flex cursor-pointer items-center gap-4 rounded-2xl border border-[#0B6E54]/35 bg-emerald-50/70 p-4 text-left text-[#111625] transition hover:bg-emerald-50 disabled:opacity-60"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0B6E54] text-white">
+                <AppIcon name="content_paste_go" className="text-3xl" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-bold text-[#0B6E54] sm:text-lg">
+                  {vi.actions.pasteTransfer}
+                </div>
+                <div className="text-xs text-[#475569]">{vi.actions.pasteTransferSub}</div>
+              </div>
+              <AppIcon name="chevron_right" className="text-2xl text-[#0B6E54]" />
+            </button>
+
+            {/* 3. Speak Voice Input */}
+            <button
+              type="button"
+              disabled={isUploading || isRunning}
+              onClick={() => setVoiceBoxOpen((v) => !v)}
+              className={`flex cursor-pointer items-center gap-4 rounded-2xl border p-4 text-left transition ${
+                isRecording
+                  ? 'border-[#B91C1C] bg-red-50 text-[#B91C1C]'
+                  : 'border-border bg-[#F6F8FB] text-[#111625] hover:border-[#2E2396]'
+              }`}
+            >
+              <span
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white ${
+                  isRecording ? 'animate-pulse bg-[#B91C1C]' : 'bg-[#2E2396]'
+                }`}
+              >
+                <AppIcon name="mic" className="text-3xl" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-bold sm:text-lg">
+                  {isRecording ? vi.actions.stopRecording : vi.actions.speakVoice}
+                </div>
+                <div className="text-xs text-[#475569]">{vi.actions.speakVoiceSub}</div>
+              </div>
+              <AppIcon name={voiceBoxOpen ? 'expand_less' : 'expand_more'} className="text-2xl text-[#2E2396]" />
+            </button>
+          </div>
+
+          {/* Voice Input Panel */}
+          {voiceBoxOpen && (
+            <div className="mt-4 rounded-xl bg-[#F6F8FB] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#2E2396]">
+                  <AppIcon name="mic" className="text-base" />
+                  Ghi âm giọng nói hoặc nhập câu lệnh tiếng Việt:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={isRecording ? 'destructive-solid' : 'default'}
+                    onClick={startOrStopMic}
+                  >
+                    <AppIcon name={isRecording ? 'stop_circle' : 'mic'} className="text-base" />
+                    {isRecording ? 'Đang thu âm... Bấm dừng' : 'Bật Micro'}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => mobileAudioInputRef.current?.click()}
+                    className="text-[#2E2396]"
+                  >
+                    <AppIcon name="smartphone" className="text-base" />
+                    Tải file âm thanh ĐT
+                  </Button>
+                </div>
+              </div>
+
+              <textarea
+                rows={2}
+                value={spokenText}
+                onChange={(e) => setSpokenText(e.target.value)}
+                className="mt-2.5 w-full rounded-xl border border-border bg-white p-3 text-sm font-medium text-[#111625] focus:border-[#2E2396] focus:outline-none"
+                placeholder="Ví dụ: Hôm nay xuất bán 20 đơn hàng tổng cộng 3 triệu 500 nghìn..."
+              />
+
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {VOICE_SUGGESTIONS.map((s, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSpokenText(s)}
+                    className="cursor-pointer rounded-lg border border-border bg-white px-2.5 py-1 text-xs text-[#475569] hover:border-[#2E2396] hover:text-[#2E2396]"
+                  >
+                    Mẫu {idx + 1}: "{s.slice(0, 42)}..."
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <Button
+                  type="button"
+                  disabled={isUploading || isRunning || !spokenText.trim()}
+                  onClick={() => handleTriggerPreset('voice_vn', spokenText.trim())}
+                  size="lg"
+                >
+                  <AppIcon name="send" className="text-lg" />
+                  Gửi câu nói cho Keiki ghi sổ
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-[#B91C1C]/35 bg-red-50 p-3 text-sm font-medium text-[#B91C1C]">
+              <AppIcon name="warning" className="shrink-0 text-lg" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {/* 1-Click Stage Demo Presets */}
+          <Separator className="my-5" />
+          <div>
+            <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold text-[#475569]">
+              <AppIcon name="bolt" className="text-sm text-[#2E2396]" />
+              Kịch bản kiểm thử nhanh cho SME &amp; Hộ kinh doanh (Bấm 1 chạm):
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
                 type="button"
                 disabled={isUploading || isRunning}
-                onClick={() => receiptGalleryInputRef.current?.click()}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0F7B5F] hover:underline cursor-pointer"
+                onClick={() => handleTriggerPreset('receipt_clean')}
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-[#0B6E54] hover:bg-emerald-50/50"
               >
-                <span className="material-symbols-rounded text-sm">photo_library</span>
-                Chọn ảnh hóa đơn từ Album ĐT
+                <AppIcon name="receipt_long" className="text-xl text-[#0B6E54]" />
+                <div className="min-w-0">
+                  <div className="font-bold">1. Hóa đơn giấy hợp lệ (900.000 đ)</div>
+                  <div className="text-xs text-[#475569]">
+                    Nhập 5kg Cà phê Minh Phát → Tự ghi &amp; đóng dấu
+                  </div>
+                </div>
               </button>
-            </div>
-          </div>
 
-          {/* 2. Paste Bank Transfer Screenshot */}
-          <input
-            ref={transferInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const f = e.target.files?.[0];
-              if (f) handleFileUpload(f, 'transfer');
-              e.target.value = '';
-            }}
-          />
-          <button
-            type="button"
-            disabled={isUploading || isRunning}
-            onClick={handleClipboardButton}
-            className="flex items-center gap-4 rounded-2xl border-2 border-[#0F7B5F] bg-[#0F7B5F]/10 p-4 text-left text-[#1B1F2A] transition hover:bg-[#0F7B5F]/20 disabled:opacity-60 cursor-pointer"
-          >
-            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-[#0F7B5F] text-white">
-              <span className="material-symbols-rounded text-3xl">content_paste_go</span>
-            </span>
-            <div className="flex-1">
-              <div className="text-lg font-bold text-[#0F7B5F]">{vi.actions.pasteTransfer}</div>
-              <div className="text-xs text-slate-600">{vi.actions.pasteTransferSub}</div>
-            </div>
-            <span className="material-symbols-rounded text-2xl text-[#0F7B5F]">chevron_right</span>
-          </button>
-
-          {/* 3. Speak Voice Input */}
-          <button
-            type="button"
-            disabled={isUploading || isRunning}
-            onClick={() => setVoiceBoxOpen((v) => !v)}
-            className={`flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition cursor-pointer ${
-              isRecording
-                ? 'border-[#C62828] bg-[#C62828]/10 text-[#C62828]'
-                : 'border-[#3B2FA8]/40 bg-[#F6F8FB] text-[#1B1F2A] hover:border-[#3B2FA8]'
-            }`}
-          >
-            <span
-              className={`flex h-13 w-13 shrink-0 items-center justify-center rounded-xl text-white ${
-                isRecording ? 'bg-[#C62828] animate-pulse' : 'bg-[#3B2FA8]'
-              }`}
-            >
-              <span className="material-symbols-rounded text-3xl">mic</span>
-            </span>
-            <div className="flex-1">
-              <div className="text-lg font-bold">
-                {isRecording ? vi.actions.stopRecording : vi.actions.speakVoice}
-              </div>
-              <div className="text-xs text-slate-600">{vi.actions.speakVoiceSub}</div>
-            </div>
-            <span className="material-symbols-rounded text-2xl text-[#3B2FA8]">
-              {voiceBoxOpen ? 'expand_less' : 'expand_more'}
-            </span>
-          </button>
-        </div>
-
-        {/* Voice Input Panel */}
-        {voiceBoxOpen && (
-          <div className="mt-4 rounded-xl border-2 border-[#3B2FA8]/30 bg-[#F6F8FB] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-bold text-[#3B2FA8]">
-                🎙️ Ghi âm giọng nói hoặc nhập câu lệnh kế toán bằng tiếng Việt tự nhiên:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={startOrStopMic}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white cursor-pointer ${
-                    isRecording ? 'bg-[#C62828]' : 'bg-[#3B2FA8]'
-                  }`}
-                >
-                  <span className="material-symbols-rounded text-base">
-                    {isRecording ? 'stop_circle' : 'mic'}
-                  </span>
-                  {isRecording ? 'Đang thu âm... Bấm để dừng' : 'Bật Micro trình duyệt'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => mobileAudioInputRef.current?.click()}
-                  className="inline-flex items-center gap-1 rounded-lg border border-[#3B2FA8] bg-white px-2.5 py-1.5 text-xs font-bold text-[#3B2FA8] hover:bg-indigo-50 cursor-pointer"
-                >
-                  <span className="material-symbols-rounded text-base">smartphone</span>
-                  Ghi âm / Tải file âm thanh ĐT
-                </button>
-              </div>
-            </div>
-
-            <textarea
-              rows={2}
-              value={spokenText}
-              onChange={(e) => setSpokenText(e.target.value)}
-              className="mt-2.5 w-full rounded-xl border border-[#D5DCE8] bg-white p-3 text-sm font-medium text-[#1B1F2A] focus:border-[#3B2FA8] focus:outline-none"
-              placeholder="Ví dụ: Hôm nay xuất bán 20 đơn hàng tổng cộng 3 triệu 500 nghìn..."
-            />
-
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {VOICE_SUGGESTIONS.map((s, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setSpokenText(s)}
-                  className="rounded-lg border border-[#D5DCE8] bg-white px-2.5 py-1 text-xs text-slate-700 hover:border-[#3B2FA8] hover:text-[#3B2FA8] cursor-pointer"
-                >
-                  Mẫu {idx + 1}: "{s.slice(0, 42)}..."
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-3 flex justify-end">
               <button
                 type="button"
-                disabled={isUploading || isRunning || !spokenText.trim()}
-                onClick={() => handleTriggerPreset('voice_vn', spokenText.trim())}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B2FA8] px-4 py-2 text-sm font-bold text-white shadow hover:bg-[#2f248a] disabled:opacity-50 cursor-pointer"
+                disabled={isUploading || isRunning}
+                onClick={() => handleTriggerPreset('cross_transfer')}
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-[#B91C1C] hover:bg-red-50/40"
               >
-                <span className="material-symbols-rounded text-lg">send</span>
-                Gửi câu nói cho Keiki ghi sổ
+                <AppIcon name="compare_arrows" className="text-xl text-[#B91C1C]" />
+                <div className="min-w-0">
+                  <div className="font-bold">2. Ảnh VietQR trùng chéo (900.000 đ)</div>
+                  <div className="text-xs text-[#475569]">
+                    Phát hiện CROSS_DUPLICATE &amp; hỏi gộp chứng từ
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                disabled={isUploading || isRunning}
+                onClick={() =>
+                  handleTriggerPreset(
+                    'voice_vn',
+                    'Hôm nay xuất bán 20 đơn hàng bán lẻ tổng cộng 800 nghìn đồng, khách trả tiền mặt.'
+                  )
+                }
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-[#2E2396] hover:bg-indigo-50/50"
+              >
+                <AppIcon name="record_voice_over" className="text-xl text-[#2E2396]" />
+                <div className="min-w-0">
+                  <div className="font-bold">3. Ghi sổ bằng giọng nói ("20 đơn...")</div>
+                  <div className="text-xs text-[#475569]">
+                    Gemini Audio bóc tách &amp; phân loại thuế tự động
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                disabled={isUploading || isRunning}
+                onClick={() => handleTriggerPreset('price_anomaly')}
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#111625] transition hover:border-amber-600 hover:bg-amber-50/50"
+              >
+                <AppIcon name="trending_up" className="text-xl text-[#92400E]" />
+                <div className="min-w-0">
+                  <div className="font-bold">4. Giá nhập tăng bất thường (+39%)</div>
+                  <div className="text-xs text-[#475569]">
+                    Đơn giá 250k vs lịch sử 180k → Chủ động hỏi lại
+                  </div>
+                </div>
               </button>
             </div>
           </div>
-        )}
-
-        {errorMsg && (
-          <div className="mt-4 rounded-xl border border-[#C62828] bg-red-50 p-3 text-sm font-medium text-[#C62828]">
-            ⚠️ {errorMsg}
-          </div>
-        )}
-
-        {/* 1-Click Stage Demo Presets */}
-        <div className="mt-5 border-t border-[#D5DCE8] pt-4">
-          <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-500">
-            ⚡ Kịch bản kiểm thử nhanh cho SME & Hộ kinh doanh (Bấm 1 chạm):
-          </p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              disabled={isUploading || isRunning}
-              onClick={() => handleTriggerPreset('receipt_clean')}
-              className="flex items-center gap-2.5 rounded-xl border border-[#D5DCE8] bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#1B1F2A] hover:border-[#0F7B5F] hover:bg-emerald-50/50 cursor-pointer"
-            >
-              <span className="material-symbols-rounded text-xl text-[#0F7B5F]">receipt_long</span>
-              <div>
-                <div className="font-bold">1. Hóa đơn giấy hợp lệ (900.000 đ)</div>
-                <div className="text-[11px] text-slate-500">
-                  Nhập 5kg Cà phê Minh Phát → Tự ghi & đóng dấu
-                </div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              disabled={isUploading || isRunning}
-              onClick={() => handleTriggerPreset('cross_transfer')}
-              className="flex items-center gap-2.5 rounded-xl border border-[#D5DCE8] bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#1B1F2A] hover:border-[#C62828] hover:bg-red-50/40 cursor-pointer"
-            >
-              <span className="material-symbols-rounded text-xl text-[#C62828]">compare_arrows</span>
-              <div>
-                <div className="font-bold">2. Ảnh VietQR trùng chéo hóa đơn (900.000 đ)</div>
-                <div className="text-[11px] text-slate-500">
-                  Phát hiện CROSS_DUPLICATE & hỏi gộp chứng từ
-                </div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              disabled={isUploading || isRunning}
-              onClick={() =>
-                handleTriggerPreset(
-                  'voice_vn',
-                  'Hôm nay xuất bán 20 đơn hàng bán lẻ tổng cộng 800 nghìn đồng, khách trả tiền mặt.'
-                )
-              }
-              className="flex items-center gap-2.5 rounded-xl border border-[#D5DCE8] bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#1B1F2A] hover:border-[#3B2FA8] hover:bg-indigo-50/50 cursor-pointer"
-            >
-              <span className="material-symbols-rounded text-xl text-[#3B2FA8]">record_voice_over</span>
-              <div>
-                <div className="font-bold">3. Ghi sổ bằng giọng nói ("Hôm nay xuất bán 20 đơn...")</div>
-                <div className="text-[11px] text-slate-500">
-                  Gemini Audio bóc tách & phân loại thuế tự động
-                </div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              disabled={isUploading || isRunning}
-              onClick={() => handleTriggerPreset('price_anomaly')}
-              className="flex items-center gap-2.5 rounded-xl border border-[#D5DCE8] bg-[#F6F8FB] px-3 py-2.5 text-left text-xs font-semibold text-[#1B1F2A] hover:border-amber-600 hover:bg-amber-50/50 cursor-pointer"
-            >
-              <span className="material-symbols-rounded text-xl text-amber-600">trending_up</span>
-              <div>
-                <div className="font-bold">4. Hóa đơn giá nhập tăng bất thường (+39%)</div>
-                <div className="text-[11px] text-slate-500">
-                  Đơn giá 250k vs lịch sử 180k → Chủ động hỏi lại
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Live SSE Agent Timeline */}
       <AgentTimeline

@@ -1,7 +1,13 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { JobEventRecord, Transaction } from '../types/contract';
 import { formatVnd } from '../utils/money';
 import { speakVietnamese } from '../utils/speech';
 import { Stamp } from './Stamp';
+import { AppIcon } from '@/components/AppIcon';
 
 interface AgentTimelineProps {
   events: JobEventRecord[];
@@ -36,136 +42,157 @@ export function AgentTimeline({
   }
 
   return (
-    <div
-      aria-live="polite"
-      className="mt-5 rounded-2xl border-2 border-[#3B2FA8]/30 bg-white p-5 shadow-md"
-    >
-      <div className="flex items-center justify-between border-b border-[#D5DCE8] pb-3">
-        <div className="flex items-center gap-2.5">
-          <span className="material-symbols-rounded text-2xl text-[#3B2FA8]">auto_awesome</span>
-          <div>
-            <h3 className="font-bold text-[#1B1F2A]">Tiến trình Trợ lý AI Keiki (Google Gemini)</h3>
-            <p className="text-xs text-slate-600">
-              Gemini đọc hiểu đa phương thức • Code Python kiểm toán số học
+    <Card aria-live="polite" className="mt-5 gap-0 py-0">
+      <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border bg-[#F6F8FB] px-5 py-3.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <AppIcon name="auto_awesome" className="text-xl text-[#2E2396]" />
+          <div className="min-w-0">
+            <CardTitle className="text-sm font-bold text-[#111625]">
+              Tiến trình Trợ lý Kiểm toán Keiki
+            </CardTitle>
+            <p className="text-xs text-[#475569]">
+              Gemini đọc hiểu đa phương thức • Python kiểm toán số học
             </p>
           </div>
         </div>
         {isRunning && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3B2FA8]/10 px-3 py-1 text-xs font-semibold text-[#3B2FA8]">
-            <span className="h-2 w-2 animate-ping rounded-full bg-[#3B2FA8]" />
-            Đang xử lý...
-          </span>
+          <Badge variant="outline" className="border-[#2E2396]/30 text-[#2E2396]">
+            <span className="audit-live-dot h-2 w-2 rounded-full bg-[#2E2396]" />
+            Đang xử lý
+          </Badge>
         )}
-      </div>
+      </CardHeader>
 
-      <ol className="mt-4 space-y-2.5">
-        {events.map((ev) => {
-          const icon =
-            ev.status === 'ok'
-              ? 'check_circle'
-              : ev.status === 'warn'
-              ? 'warning'
-              : ev.status === 'error'
-              ? 'error'
-              : 'pending';
-          const color =
-            ev.status === 'ok'
-              ? 'text-[#0F7B5F]'
-              : ev.status === 'warn'
-              ? 'text-[#C62828]'
-              : ev.status === 'error'
-              ? 'text-[#C62828]'
-              : 'text-[#3B2FA8]';
+      <CardContent className="space-y-4 p-5">
+        <ol className="space-y-2">
+          {events.map((ev) => {
+            const icon =
+              ev.status === 'ok'
+                ? 'check_circle'
+                : ev.status === 'warn'
+                ? 'warning'
+                : ev.status === 'error'
+                ? 'error'
+                : 'pending';
+            const color =
+              ev.status === 'ok'
+                ? 'text-[#0B6E54]'
+                : ev.status === 'warn' || ev.status === 'error'
+                ? 'text-[#B91C1C]'
+                : 'text-[#2E2396]';
 
-          return (
-            <li
-              key={`${ev.seq}-${ev.step}`}
-              className="flex items-start gap-2.5 rounded-lg bg-[#F6F8FB] px-3.5 py-2.5 text-sm"
+            return (
+              <li
+                key={`${ev.seq}-${ev.step}`}
+                className="audit-step-enter flex items-start gap-2.5 rounded-xl bg-[#F6F8FB] px-3.5 py-2.5 text-sm"
+              >
+                <AppIcon name={icon} className={`mt-0.5 text-lg ${color}`} />
+                <div className="min-w-0 flex-1">
+                  <span className="font-semibold text-[#111625]">
+                    {STEP_LABELS[ev.step] || ev.step}:{' '}
+                  </span>
+                  <span className="text-[#475569]">{ev.message}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
+        {isRunning && (
+          <div className="space-y-2.5 rounded-xl bg-[#F6F8FB] p-4">
+            <div className="flex items-center justify-between gap-2">
+              <Skeleton className="h-4 w-44" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <Skeleton className="h-3.5 w-full" />
+            <Skeleton className="h-3.5 w-3/4" />
+          </div>
+        )}
+
+        {resultTransaction && finalDecision && (
+          <>
+            <Separator />
+            <div
+              className={`space-y-3 rounded-xl p-4 ${
+                finalDecision === 'recorded' ? 'bg-emerald-50/70' : 'bg-red-50/60'
+              }`}
             >
-              <span className={`material-symbols-rounded mt-0.5 text-lg ${color}`}>{icon}</span>
-              <div className="flex-1">
-                <span className="font-semibold text-[#1B1F2A]">
-                  {STEP_LABELS[ev.step] || ev.step}:{' '}
-                </span>
-                <span className="text-slate-800">{ev.message}</span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-[#475569]">
+                    <span>{resultTransaction.date}</span>
+                    <span>•</span>
+                    <span>
+                      {resultTransaction.type === 'revenue' ? 'Khoản Thu vào' : 'Khoản Chi ra'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-base font-bold text-[#111625]">
+                    {resultTransaction.counterparty || 'Giao dịch mới'}
+                  </p>
+                  <p className="tabular-nums text-xl font-extrabold text-[#2E2396]">
+                    {formatVnd(resultTransaction.amount_vnd)}
+                  </p>
+                </div>
+
+                {finalDecision === 'recorded' ? (
+                  <Stamp animate />
+                ) : (
+                  <Badge variant="destructive" className="px-3 py-1 font-bold">
+                    <AppIcon name="help" className="text-sm" />
+                    CẦN XÁC NHẬN LẠI
+                  </Badge>
+                )}
               </div>
-            </li>
-          );
-        })}
-      </ol>
 
-      {resultTransaction && finalDecision && (
-        <div
-          className={`mt-4 rounded-xl border-2 p-4 ${
-            finalDecision === 'recorded'
-              ? 'border-[#0F7B5F] bg-[#0F7B5F]/5'
-              : 'border-[#C62828] bg-[#FFF8F8]'
-          }`}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {resultTransaction.date} •{' '}
-                {resultTransaction.type === 'revenue' ? 'Khoản Thu vào' : 'Khoản Chi ra'}
-              </p>
-              <p className="text-lg font-bold text-[#1B1F2A]">
-                {resultTransaction.counterparty || 'Giao dịch mới'}
-              </p>
-              <p className="tabular-nums text-xl font-extrabold text-[#3B2FA8]">
-                {formatVnd(resultTransaction.amount_vnd)}
-              </p>
-            </div>
-            {finalDecision === 'recorded' ? (
-              <Stamp animate />
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#C62828] px-3 py-1.5 text-xs font-bold text-white">
-                <span className="material-symbols-rounded text-base">help</span>
-                CẦN XÁC NHẬN LẠI
-              </span>
-            )}
-          </div>
+              {resultTransaction.clarification_question && (
+                <div className="rounded-xl bg-[#FEF08A]/55 p-3.5 text-sm text-[#111625]">
+                  <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="inline-flex items-start gap-2 font-medium leading-relaxed">
+                      <AppIcon name="chat" className="mt-0.5 shrink-0 text-base text-[#2E2396]" />
+                      <span>
+                        <strong>Keiki hỏi:</strong> {resultTransaction.clarification_question}
+                      </span>
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => speakVietnamese(resultTransaction.clarification_question || '')}
+                      className="shrink-0"
+                    >
+                      <AppIcon name="volume_up" className="text-base" />
+                      Nghe đọc
+                    </Button>
+                  </div>
+                </div>
+              )}
 
-          {resultTransaction.clarification_question && (
-            <div className="mt-3 rounded-lg bg-[#FFE66D]/45 p-3 text-sm text-[#1B1F2A]">
-              <div className="flex items-start justify-between gap-2">
-                <p className="font-medium leading-relaxed">
-                  💬 <strong>Keiki hỏi:</strong> {resultTransaction.clarification_question}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => speakVietnamese(resultTransaction.clarification_question || '')}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#3B2FA8] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2f248a] cursor-pointer"
-                >
-                  <span className="material-symbols-rounded text-base">volume_up</span>
-                  Nghe đọc
-                </button>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {finalDecision === 'needs_review' ? (
+                  <Button
+                    type="button"
+                    variant="destructive-solid"
+                    size="lg"
+                    onClick={onOpenReviewTab}
+                  >
+                    <AppIcon name="fact_check" className="text-lg" />
+                    Mở mục Cần hỏi lại để xử lý ngay
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="emerald"
+                    size="lg"
+                    onClick={onOpenLedgerTab}
+                  >
+                    <AppIcon name="menu_book" className="text-lg" />
+                    Xem trong Sổ kế toán
+                  </Button>
+                )}
               </div>
             </div>
-          )}
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {finalDecision === 'needs_review' ? (
-              <button
-                type="button"
-                onClick={onOpenReviewTab}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#C62828] px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-red-800 cursor-pointer"
-              >
-                <span className="material-symbols-rounded text-lg">fact_check</span>
-                Mở mục Cần hỏi lại để xử lý ngay
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onOpenLedgerTab}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F7B5F] px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-emerald-800 cursor-pointer"
-              >
-                <span className="material-symbols-rounded text-lg">menu_book</span>
-                Xem trong Sổ kế toán
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -1,4 +1,5 @@
 import { vi } from '../i18n/vi';
+import { AppIcon } from '@/components/AppIcon';
 
 interface StampProps {
   animate?: boolean;
@@ -7,11 +8,11 @@ interface StampProps {
 export function Stamp({ animate = true }: StampProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 border-2 border-[#0F7B5F] bg-[#0F7B5F]/10 px-2.5 py-0.5 text-xs font-bold tracking-wider text-[#0F7B5F] uppercase rounded ${
-        animate ? 'stamp-animate' : '-rotate-6'
+      className={`inline-flex items-center gap-1.5 rounded border border-[#0B6E54] bg-emerald-50/90 px-3 py-2 font-mono text-xs leading-none font-bold tracking-wider text-[#0B6E54] uppercase ring-1 ring-[#0B6E54]/15 ${
+        animate ? 'stamp-animate' : '-rotate-4'
       }`}
     >
-      <span className="material-symbols-rounded text-sm">verified</span>
+      <AppIcon name="verified" className="text-sm" />
       {vi.stampText}
     </span>
   );

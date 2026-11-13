@@ -1,4 +1,15 @@
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { AppIcon } from '@/components/AppIcon';
 
 interface MobileConnectModalProps {
   open: boolean;
@@ -18,10 +29,10 @@ export function MobileConnectModal({
   const [selectedUrlIdx, setSelectedUrlIdx] = useState(0);
   const [copied, setCopied] = useState(false);
 
-  if (!open) return null;
-
   const activeUrl =
-    lanUrls[selectedUrlIdx] || lanUrls[0] || window.location.origin;
+    lanUrls[selectedUrlIdx] ||
+    lanUrls[0] ||
+    (typeof window !== 'undefined' ? window.location.origin : '');
 
   const handleCopy = async () => {
     try {
@@ -29,136 +40,116 @@ export function MobileConnectModal({
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // ignore
+      // ignore clipboard errors in restricted contexts
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-6 shadow-2xl"
-      >
-        <div className="flex items-center justify-between border-b border-[#D5DCE8] pb-3">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-rounded text-2xl text-[#3B2FA8]">
-              smartphone
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-lg">
+        <DialogHeader className="border-b border-border bg-[#F6F8FB] px-5 py-4">
+          <div className="flex items-center gap-2.5 pr-6">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#2E2396]/10 text-[#2E2396]">
+              <AppIcon name="smartphone" className="text-xl" />
             </span>
-            <div>
-              <h3 className="text-lg font-extrabold text-[#1B1F2A]">
-                Sử dụng Keiki trên Điện thoại (iOS & Android)
-              </h3>
-              <p className="text-xs text-slate-500">
-                Hỗ trợ đầy đủ PWA, Camera chụp hóa đơn, Dán ảnh ngân hàng & Giọng nói
-              </p>
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-bold text-[#111625]">
+                Sử dụng Keiki trên Điện thoại (iOS &amp; Android)
+              </DialogTitle>
+              <DialogDescription className="mt-0.5 text-xs text-[#475569]">
+                Hỗ trợ PWA, Camera chụp hóa đơn, dán ảnh VietQR &amp; ghi âm giọng nói.
+              </DialogDescription>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 cursor-pointer"
-          >
-            <span className="material-symbols-rounded">close</span>
-          </button>
-        </div>
+        </DialogHeader>
 
-        <div className="mt-4 space-y-4">
-          {/* Option 1: Toggle Mobile Frame Preview right on this screen */}
-          <div className="rounded-2xl border-2 border-[#3B2FA8] bg-indigo-50/50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-extrabold text-[#3B2FA8]">
-                  1. Xem & Thao tác Giao diện Điện thoại ngay trên máy tính
+        <div className="space-y-4 p-5">
+          {/* Option 1: Toggle Mobile Frame Preview */}
+          <div className="rounded-xl bg-[#E8ECF6]/60 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-[#2E2396]">
+                  1. Xem giao diện Điện thoại (390×844px) ngay trên màn hình
                 </div>
-                <p className="mt-0.5 text-xs text-slate-600">
-                  Chuyển ngay sang màn hình chuẩn Điện thoại (390×844px) với thanh điều hướng 4
-                  tab dưới đáy để kiểm thử trực tiếp.
+                <p className="mt-1 text-xs leading-relaxed text-[#475569]">
+                  Kiểm thử trực tiếp thanh điều hướng 4 tab và thao tác một tay.
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
+                variant={mobilePreview ? 'destructive-solid' : 'default'}
+                size="lg"
                 onClick={() => {
                   onToggleMobilePreview();
                   onClose();
                 }}
-                className={`shrink-0 rounded-xl px-4 py-2.5 text-xs font-extrabold shadow transition cursor-pointer ${
-                  mobilePreview
-                    ? 'bg-[#C62828] text-white hover:bg-red-700'
-                    : 'bg-[#3B2FA8] text-white hover:bg-[#2f248a]'
-                }`}
+                className="shrink-0"
               >
-                {mobilePreview ? 'Thoát Khung ĐT' : '📱 Bật Khung ĐT'}
-              </button>
+                {mobilePreview ? 'Thoát khung ĐT' : 'Bật khung ĐT'}
+              </Button>
             </div>
           </div>
 
-          {/* Option 2: Scan QR Code with real phone over Wi-Fi */}
-          <div className="rounded-2xl border border-[#D5DCE8] bg-[#F6F8FB] p-4">
-            <div className="text-sm font-extrabold text-[#1B1F2A]">
-              2. Quét mã QR để mở trên Điện thoại thật (cùng mạng Wi-Fi)
+          <Separator />
+
+          {/* Option 2: Scan / Open over Wi-Fi */}
+          <div className="space-y-3">
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-bold text-[#111625]">
+                  2. Mở trên Điện thoại thật qua mạng Wi-Fi nội bộ
+                </span>
+                <Badge variant="emerald">Zero Third-Party Leak</Badge>
+              </div>
+              <p className="mt-1 text-xs text-[#475569]">
+                Đảm bảo điện thoại và máy tính dùng chung mạng Wi-Fi, sau đó mở địa chỉ bên dưới:
+              </p>
             </div>
-            <p className="mt-1 text-xs text-slate-600">
-              Đảm bảo điện thoại và máy tính kết nối cùng mạng Wi-Fi, sau đó dùng Camera hoặc Zalo
-              quét mã QR bên dưới:
-            </p>
 
             {lanUrls.length > 1 && (
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 {lanUrls.map((u, idx) => (
-                  <button
+                  <Button
                     key={u}
                     type="button"
+                    size="sm"
+                    variant={idx === selectedUrlIdx ? 'default' : 'outline'}
                     onClick={() => setSelectedUrlIdx(idx)}
-                    className={`rounded-lg border px-2.5 py-1 text-xs font-mono font-semibold cursor-pointer ${
-                      idx === selectedUrlIdx
-                        ? 'border-[#3B2FA8] bg-[#3B2FA8] text-white'
-                        : 'border-[#D5DCE8] bg-white text-slate-700'
-                    }`}
+                    className="font-mono text-xs"
                   >
                     {u}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
 
-            <div className="mt-3 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <div className="flex h-36 w-36 shrink-0 flex-col items-center justify-center rounded-2xl border-2 border-[#3B2FA8]/30 bg-white p-3 text-center shadow-xs">
-                <span className="material-symbols-rounded text-5xl text-[#3B2FA8]">
-                  devices
-                </span>
-                <span className="mt-1 text-[11px] font-bold text-slate-600">
-                  Kết nối Nội bộ An toàn (Zero Third-Party Leak)
+            <div className="flex flex-col items-stretch gap-3 rounded-xl bg-[#F6F8FB] p-4 sm:flex-row sm:items-center">
+              <div className="flex h-28 w-full shrink-0 flex-col items-center justify-center rounded-lg border border-border bg-white p-3 text-center sm:w-32">
+                <AppIcon name="devices" className="text-4xl text-[#2E2396]" />
+                <span className="mt-1 text-xs font-semibold text-[#475569]">
+                  LAN Localhost
                 </span>
               </div>
 
-              <div className="flex-1 space-y-2 text-center sm:text-left">
-                <div className="text-xs font-semibold text-slate-500">
-                  Địa chỉ truy cập trên trình duyệt điện thoại:
-                </div>
-                <div className="rounded-xl border border-[#D5DCE8] bg-white px-3 py-2 font-mono text-sm font-extrabold text-[#3B2FA8] break-all">
+              <div className="min-w-0 flex-1 space-y-2.5">
+                <div className="rounded-lg border border-border bg-white px-3 py-2 font-mono text-xs font-semibold text-[#2E2396] break-all">
                   {activeUrl}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F7B5F] px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
-                >
-                  <span className="material-symbols-rounded text-base">content_copy</span>
-                  {copied ? 'Đã sao chép đường dẫn!' : 'Sao chép đường dẫn'}
-                </button>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  💡 <strong>Mẹo cài App (PWA):</strong> Sau khi mở trên điện thoại, chọn{' '}
-                  <strong>"Thêm vào Màn hình chính" (Add to Home Screen)</strong> trên Safari/Chrome
-                  để dùng Keiki full-screen như ứng dụng di động thực thụ!
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button type="button" variant="emerald" size="sm" onClick={handleCopy}>
+                    <AppIcon name={copied ? 'check' : 'content_copy'} className="text-base" />
+                    {copied ? 'Đã sao chép!' : 'Sao chép đường dẫn'}
+                  </Button>
+                </div>
+                <p className="text-xs leading-relaxed text-[#475569]">
+                  Sau khi mở trên Safari hoặc Chrome điện thoại, chọn{' '}
+                  <strong className="text-[#111625]">Thêm vào Màn hình chính</strong> để dùng như ứng dụng độc lập.
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
