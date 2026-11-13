@@ -1,50 +1,81 @@
-# CONTRACT.md: hợp đồng dữ liệu và API
+# CONTRACT.md: Hợp đồng dữ liệu và API — Dự án Keiki (Sản phẩm Hoàn chỉnh)
 
-Nguồn sự thật duy nhất cho FE, BE và AI Dev. Mọi thay đổi phải sửa file này **trước**, rồi cập nhật `backend/app/models.py` và `frontend/src/types/contract.ts` trong cùng một commit.
+Nguồn sự thật duy nhất cho **FE**, **BE** và **AI Dev**. Mọi thay đổi phải sửa file này **trước**, rồi cập nhật đồng bộ `backend/app/models.py`, `agent/schemas.py` và `frontend/src/types/contract.ts` trong cùng một commit.
 
-Nhãn **[Nền]** = có thể làm trước ngày thi. **[Ngày thi]** = chỉ làm khi `PHASE: HACKATHON` (xem `AGENTS.md`).
+---
 
 ## 1. Quy ước chung
 
-- Tiền: số nguyên VND, trường có hậu tố `_vnd`. Không dùng số thực.
-- Ngày: `YYYY-MM-DD`. Thời điểm: ISO 8601 UTC (`2026-11-12T03:15:00Z`). Hiển thị theo `Asia/Ho_Chi_Minh`.
-- Id: chuỗi, tiền tố theo loại (`txn_`, `doc_`, `job_`).
-- Một hộ kinh doanh demo cố định: `household_id = "demo"` (lấy từ biến môi trường `DEMO_HOUSEHOLD_ID`). Không có đăng nhập.
-- JSON dùng `snake_case`. Thông điệp cho người dùng viết bằng tiếng Việt.
+- **Tiền:** số nguyên VND, trường có hậu tố `_vnd`. Tuyệt đối không dùng số thực (`float`) cho tiền tệ.
+- **Ngày:** `YYYY-MM-DD`. Thời điểm: ISO 8601 UTC (`2026-11-12T03:15:00Z`). Hiển thị theo múi giờ `Asia/Ho_Chi_Minh`.
+- **Id:** chuỗi có tiền tố theo loại (`txn_`, `doc_`, `job_`).
+- **Hộ kinh doanh mặc định:** `household_id = "demo"` (lấy từ biến môi trường `DEMO_HOUSEHOLD_ID`, đại diện hộ kinh doanh mẫu *"Quán Mì Quảng & Tạp hóa Bà Sáu — Hải Châu, Đà Nẵng"*).
+- **JSON:** dùng `snake_case`. Mọi thông điệp, cảnh báo và câu hỏi chủ động của AI hiển thị cho người dùng đều viết bằng **tiếng Việt** tự nhiên, lễ phép, dễ hiểu với tiểu thương.
 
-## 2. Enum
+---
 
-- `type`: `revenue` | `expense`
-- `category` (doanh thu): `ban_hang`, `dich_vu`, `thu_khac`
+## 2. Enum chuẩn
+
+- `type`: `revenue` (thu / bán hàng) | `expense` (chi / mua hàng, vận hành)
+- `category` (doanh thu): `ban_hang`, `dich_vu`, `an_uong`, `thu_khac`
 - `category` (chi phí): `nhap_hang`, `chi_phi_van_hanh`, `luong`, `thue_phi`, `chi_khac`
-- `status`: `recorded` (đã ghi) | `needs_review` (cần xác nhận) | `rejected` (từ chối)
-- `source`: `agent` | `manual`
-- `document.kind`: `image` | `audio` | `transfer` (ảnh chụp màn hình chuyển khoản)
-- `warning.code`: `DUPLICATE`, `PRICE_ANOMALY`, `TOTAL_MISMATCH`, `MISSING_FIELD`, `LOW_CONFIDENCE`, `TAX_CODE_NOT_FOUND`, `IMAGE_QUALITY`
+- `tax_group` (nhóm ngành tính thuế hộ kinh doanh theo quy định & sổ S1-HKD Thông tư 152/2025/TT-BTC):
+  - `phan_phoi_hang_hoa` (Phân phối, cung cấp hàng hóa — tỷ lệ thuế 1,5%: GTGT 1% + TNCN 0,5%)
+  - `san_xuat_van_tai_an_uong` (Sản xuất, vận tải, dịch vụ có gắn với hàng hóa, ăn uống — 4,5%: GTGT 3% + TNCN 1,5%)
+  - `dich_vu_xay_dung` (Dịch vụ, lưu trú, du lịch, xây dựng không bao thầu nguyên vật liệu — 7%: GTGT 5% + TNCN 2%)
+  - `kinh_doanh_khac` (Hoạt động kinh doanh khác — 3%: GTGT 2% + TNCN 1%)
+  - `khong_tinh_thue` (Chi phí đầu vào hoặc khoản thu không thuộc diện tính thuế doanh thu)
+- `payment_method`: `cash` (tiền mặt) | `transfer` (chuyển khoản ngân hàng / QR) | `unknown`
+- `status`: `recorded` (đã ghi sổ) | `needs_review` (cần chủ hộ xác nhận / trả lời) | `rejected` (đã từ chối / đã gộp vào giao dịch gốc)
+- `source`: `agent` (Google Gemini AI) | `manual` (nhập tay)
+- `document.kind`:
+  - `image` (ảnh chụp hóa đơn giấy, phiếu thu/chi, sổ viết tay)
+  - `transfer` (ảnh chụp màn hình chuyển khoản ngân hàng / VietQR / ví điện tử)
+  - `audio` (ghi âm giọng nói của chủ hộ, bao gồm phương ngữ miền Trung)
+- `warning.code`:
+  - `DUPLICATE`: Trùng chứng từ cùng loại (cùng ảnh `sha256`, hoặc cùng đối tác + ngày + số tiền + cùng loại chứng từ)
+  - `CROSS_DUPLICATE`: **Trùng chéo giữa hóa đơn giấy và ảnh chuyển khoản / giọng nói** của cùng một giao dịch (ví dụ: vừa chụp hóa đơn giấy 1.250.000đ xong lại dán tiếp màn hình chuyển khoản 1.250.000đ)
+  - `PRICE_ANOMALY`: Đơn giá mặt hàng biến động bất thường (> 30%) so với lịch sử nhập
+  - `TOTAL_MISMATCH`: Tổng tiền các dòng hàng không khớp với tổng thanh toán trên hóa đơn
+  - `MISSING_FIELD`: Thiếu trường bắt buộc (`date`, `amount_vnd`, `type`)
+  - `LOW_CONFIDENCE`: Độ tin cậy trích xuất của trường quan trọng thấp (< 0,85) hoặc thông tin mơ hồ
+  - `TAX_CODE_NOT_FOUND`: Mã số thuế nhà cung cấp không tồn tại hoặc đã ngừng hoạt động
+  - `IMAGE_QUALITY`: Ảnh quá mờ, tối hoặc mất góc không đọc được
 - `warning.severity`: `high` | `medium` | `info`
 - `job.status`: `queued` | `running` | `done` | `error`
 
-## 3. Giao dịch (Transaction)
+---
+
+## 3. Giao dịch (`Transaction`)
 
 ```json
 {
   "id": "txn_01",
   "household_id": "demo",
   "document_id": "doc_01",
+  "linked_document_ids": ["doc_01"],
+  "duplicate_of_id": null,
   "date": "2026-11-12",
   "type": "expense",
   "category": "nhap_hang",
+  "tax_group": "khong_tinh_thue",
+  "payment_method": "transfer",
   "amount_vnd": 1250000,
-  "counterparty": "Cửa hàng Minh Phát",
+  "counterparty": "Đại lý Minh Phát Đà Nẵng",
   "tax_code": "0401234567",
   "items": [
     {"name": "Cà phê hạt 1kg", "quantity": 5, "unit_price_vnd": 250000, "line_total_vnd": 1250000}
   ],
-  "confidence": {"date": 0.98, "amount_vnd": 0.95, "counterparty": 0.9},
+  "transcript": null,
+  "confidence": {"date": 0.98, "amount_vnd": 0.95, "counterparty": 0.9, "type": 0.96},
   "status": "needs_review",
+  "clarification_question": "Đơn giá cà phê hạt đợt này là 250.000đ/kg (cao hơn 39% so với mức 180.000đ/kg các lần trước). Cô/chú xác nhận đúng giá mới hay hóa đơn ghi nhầm ạ?",
   "warnings": [
-    {"code": "PRICE_ANOMALY", "severity": "medium",
-     "message": "Đơn giá cà phê hạt cao hơn 39% so với trung vị 3 lần nhập trước (180.000 đ)."}
+    {
+      "code": "PRICE_ANOMALY",
+      "severity": "medium",
+      "message": "Đơn giá cà phê hạt cao hơn 39% so với trung vị 3 lần nhập trước (180.000 đ)."
+    }
   ],
   "source": "agent",
   "created_at": "2026-11-12T03:15:00Z",
@@ -52,90 +83,136 @@ Nhãn **[Nền]** = có thể làm trước ngày thi. **[Ngày thi]** = chỉ l
 }
 ```
 
-- Bắt buộc: `id`, `household_id`, `date`, `type`, `amount_vnd` (> 0), `status`, `source`, `created_at`, `updated_at`.
-- Có thể `null`: `document_id` (khi nhập tay), `category`, `counterparty`, `tax_code`, `confidence` (khi nhập tay là `{}`).
-- `items` có thể rỗng. Nếu có thì `line_total_vnd = quantity * unit_price_vnd` (cho phép lệch do làm tròn trên chứng từ gốc, luật `TOTAL_MISMATCH` xử lý).
-- Trường người dùng được sửa qua PATCH: `date`, `type`, `category`, `amount_vnd`, `counterparty`, `tax_code`, `items`.
+- **Bắt buộc:** `id`, `household_id`, `date`, `type`, `amount_vnd` (> 0), `status`, `source`, `created_at`, `updated_at`.
+- **Trường liên kết & thông minh:**
+  - `document_id`: ID chứng từ chính (`null` khi nhập tay).
+  - `linked_document_ids`: danh sách tất cả `document_id` gắn với giao dịch này. Khi chủ hộ bấm **Gộp chứng từ trùng chéo** (hóa đơn giấy + ảnh chụp màn hình chuyển khoản), mảng này lưu cả 2 `document_id` để đảm bảo 1 bút toán có đủ bộ chứng từ gốc!
+  - `duplicate_of_id`: `id` của giao dịch gốc nếu giao dịch này bị nghi trùng (`DUPLICATE` hoặc `CROSS_DUPLICATE`).
+  - `transcript`: câu nói gốc đã nhận diện (khi nhập bằng giọng nói phương ngữ miền Trung).
+  - `clarification_question`: câu hỏi chủ động bằng tiếng Việt tự nhiên của Keiki khi cần chủ hộ xác nhận.
+- **Trường người dùng được sửa qua `PATCH`:** `date`, `type`, `category`, `tax_group`, `payment_method`, `amount_vnd`, `counterparty`, `tax_code`, `items`.
 
-## 4. Chứng từ (Document) và Job
+---
+
+## 4. Chứng từ (`Document`) và Tiến trình (`Job`)
 
 ```json
-{"id": "doc_01", "household_id": "demo", "kind": "image", "mime_type": "image/jpeg",
- "sha256": "…", "storage_path": "demo/doc_01.jpg", "uploaded_at": "2026-11-12T03:14:50Z"}
+{
+  "id": "doc_01",
+  "household_id": "demo",
+  "kind": "image",
+  "mime_type": "image/jpeg",
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "storage_path": "demo/doc_01.jpg",
+  "uploaded_at": "2026-11-12T03:14:50Z"
+}
 ```
 
 ```json
-{"id": "job_01", "document_id": "doc_01", "status": "running",
- "events": [], "transaction_id": null, "error": null}
+{
+  "id": "job_01",
+  "document_id": "doc_01",
+  "status": "running",
+  "events": [],
+  "transaction_id": null,
+  "error": null
+}
 ```
 
-## 5. API
+---
 
-Mọi phản hồi thành công là JSON (trừ file và SSE). Mọi lỗi theo mục 7.
+## 5. Danh sách REST API Hoàn chỉnh
 
-### [Nền]
+Mọi phản hồi thành công là JSON (trừ tải file gốc, xuất Excel/ZIP và luồng SSE). Mọi lỗi tuân theo mục 7.
 
-- `GET /api/health` → `{"status": "ok", "mock": false}`
-- `POST /api/documents` (multipart: `file`, `kind`) → `201 {"document_id": "doc_01", "job_id": null}`. Ở giai đoạn Nền chỉ lưu tệp, `job_id` luôn `null`. Giới hạn 8 MB; chỉ nhận JPEG, PNG, WebP, và âm thanh webm/mp4/wav/mp3.
-- `GET /api/documents/{id}/file` → trả nội dung tệp gốc (backend proxy, không dùng signed URL).
-- `GET /api/transactions?status=&type=&from=&to=` → `{"items": [Transaction], "total": 12}`, mới nhất trước.
+- `GET /api/health` → `{"status": "ok", "service": "keiki", "model": "gemini-2.5-flash"}`
+- `POST /api/documents` (multipart: `file`, `kind` = `image` | `transfer` | `audio`) → `201 {"document_id": "doc_01", "job_id": "job_01"}`.
+  - Lưu tệp lên Google Cloud Storage (hoặc thư mục local khi chạy dev), tạo `Job` và kích hoạt ngay `agent.process_document` trong nền.
+  - Giới hạn 8 MB; hỗ trợ ảnh `image/jpeg`, `image/png`, `image/webp` và âm thanh `audio/webm`, `audio/mp4`, `audio/wav`, `audio/mpeg`.
+- `GET /api/documents/{id}/file` → trả nội dung tệp gốc (backend proxy).
+- `GET /api/jobs/{id}` → `Job` (chứa toàn bộ danh sách `events`, `transaction_id`, `status`).
+- `GET /api/jobs/{id}/stream` → luồng SSE thời gian thực (mục 6).
+- `GET /api/transactions?status=&type=&from=&to=` → `{"items": [Transaction], "total": 12}`, sắp xếp mới nhất trước.
 - `POST /api/transactions` → `201 Transaction` (nhập tay: `source = "manual"`, `status = "recorded"`).
 - `PATCH /api/transactions/{id}` → `Transaction`.
 - `DELETE /api/transactions/{id}` → `204`.
-- `POST /api/extract` **(STUB)** body `{"document_id": "doc_01"}` → trả một `ExtractionResult` cố định từ fixture. Xóa khi tích hợp agent thật.
-
-### [Ngày thi]
-
-- `POST /api/documents` trả thêm `job_id` thật và tự chạy agent.
-- `GET /api/jobs/{id}` → `Job`.
-- `GET /api/jobs/{id}/stream` → SSE (mục 6).
-- `POST /api/transactions/{id}/confirm` → `Transaction` với `status = "recorded"`.
+- `POST /api/transactions/{id}/confirm` body tùy chọn `{"merge_into_duplicate": false}` →
+  - Nếu `merge_into_duplicate = false` (mặc định): chuyển trạng thái giao dịch sang `status = "recorded"`.
+  - Nếu `merge_into_duplicate = true` và giao dịch có `duplicate_of_id`: gắn `document_id` hiện tại vào `linked_document_ids` của giao dịch gốc, cập nhật `payment_method = "transfer"`, đánh dấu bản ghi trùng tạm thời là `rejected`, và trả về giao dịch gốc đã cập nhật!
 - `POST /api/transactions/{id}/reject` body `{"reason": "…"}` (tùy chọn) → `Transaction` với `status = "rejected"`.
 - `GET /api/report?period=week|month&anchor=YYYY-MM-DD` → `Report`:
   ```json
-  {"period": {"from": "2026-11-09", "to": "2026-11-15"},
-   "totals": {"revenue_vnd": 0, "expense_vnd": 0, "profit_vnd": 0},
-   "top_items": [{"name": "…", "total_vnd": 0}],
-   "price_increases": [{"item": "…", "counterparty": "…", "old_vnd": 0, "new_vnd": 0, "pct": 0.0}],
-   "pending_review": 0,
-   "summary_text": null}
+  {
+    "period": {"from": "2026-11-01", "to": "2026-11-30"},
+    "totals": {
+      "revenue_vnd": 45000000,
+      "expense_vnd": 28500000,
+      "profit_vnd": 16500000,
+      "estimated_tax_vnd": 1125000
+    },
+    "tax_breakdown": [
+      {"tax_group": "san_xuat_van_tai_an_uong", "revenue_vnd": 25000000, "rate_pct": 4.5, "tax_vnd": 1125000},
+      {"tax_group": "phan_phoi_hang_hoa", "revenue_vnd": 20000000, "rate_pct": 1.5, "tax_vnd": 300000}
+    ],
+    "top_items": [{"name": "Cà phê hạt 1kg", "total_vnd": 6250000}],
+    "price_increases": [
+      {"item": "Cà phê hạt 1kg", "counterparty": "Đại lý Minh Phát Đà Nẵng", "old_vnd": 180000, "new_vnd": 250000, "pct": 38.9}
+    ],
+    "loan_readiness": {
+      "verified_ratio_pct": 94.7,
+      "with_evidence_count": 36,
+      "total_recorded_count": 38,
+      "cross_verified_count": 14
+    },
+    "pending_review": 2,
+    "summary_text": "Doanh thu tháng 11 đạt 45.000.000đ, lợi nhuận tạm tính 16.500.000đ. Có 94,7% giao dịch đính kèm đầy đủ chứng từ gốc, đủ điều kiện minh bạch sổ sách để nộp hồ sơ vay vốn ngân hàng."
+  }
   ```
-- `GET /api/export?month=YYYY-MM&evidence=true|false` → `.xlsx` (hoặc `.zip` nếu `evidence=true`).
-- `POST /api/demo/reset` → xóa và nạp lại dữ liệu demo. Chỉ hoạt động khi `DEMO_MODE=true`.
+- `GET /api/export?month=YYYY-MM&book=ALL|S1-HKD|S2-HKD|S3-HKD&evidence=true|false` → trả file `.xlsx` theo mẫu sổ **Thông tư 152/2025/TT-BTC** (tương thích hoàn toàn với **Google Sheets** & Microsoft Excel) hoặc gói `.zip` kèm thư mục ảnh chứng từ gốc nếu `evidence=true`.
+- `POST /api/demo/reset` → khôi phục dữ liệu mẫu hộ kinh doanh Đà Nẵng về trạng thái chuẩn để trình diễn.
 
-## 6. Sự kiện SSE
+---
 
-`GET /api/jobs/{id}/stream` gửi từng sự kiện dạng `data: <JSON>\n\n`, nhắc nhịp mỗi 15 giây bằng dòng comment.
+## 6. Sự kiện SSE (`Server-Sent Events`)
+
+`GET /api/jobs/{id}/stream` gửi từng sự kiện dạng `data: <JSON>\n\n`, nhắc nhịp mỗi 15 giây bằng dòng comment `: keep-alive\n\n`.
 
 ```json
-{"job_id": "job_01", "seq": 3, "step": "validate", "status": "warn",
- "message": "Đơn giá cà phê hạt cao hơn 39% so với lần nhập trước.",
- "data": {"warning_code": "PRICE_ANOMALY"}}
+{
+  "job_id": "job_01",
+  "seq": 4,
+  "step": "validate",
+  "status": "warn",
+  "message": "Phát hiện ảnh chuyển khoản 1.250.000đ trùng với hóa đơn giấy Đại lý Minh Phát cùng ngày.",
+  "data": {"warning_code": "CROSS_DUPLICATE", "duplicate_of_id": "txn_00"}
+}
 ```
 
-- `step`: `receive` → `quality_check` → `extract` → `normalize` → `validate` → `decide` → `save` → `done` | `error`
+- Chuỗi bước `step`: `receive` → `quality_check` → `extract` → `normalize` → `validate` → `decide` → `save` → `done` | `error`
 - `status`: `running` | `ok` | `warn` | `error`
-- `message`: tiếng Việt, một câu, người dùng đọc được.
-- Sự kiện `done`: `data = {"transaction_id": "txn_01", "decision": "recorded" | "needs_review"}`.
-- Sự kiện `error`: `data = {"code": "…"}`; giao dịch (nếu có thể đọc được) vẫn chuyển vào hàng đợi.
-- Nếu SSE đứt, FE gọi lại `GET /api/jobs/{id}` mỗi giây để lấy `events` đã lưu.
+- `message`: tiếng Việt, một câu ngắn gọn, tiểu thương đọc hoặc nghe hiểu ngay.
+- Sự kiện `done`: `data = {"transaction_id": "txn_01", "decision": "recorded" | "needs_review", "clarification_question": "..."}`.
+- Sự kiện `error`: `data = {"code": "…"}`; giao dịch (nếu đọc được một phần) vẫn chuyển vào hàng đợi `needs_review`.
 
-## 7. Lỗi chuẩn
+---
+
+## 7. Định dạng lỗi chuẩn
 
 ```json
-{"error": {"code": "FILE_TOO_LARGE", "message": "Ảnh lớn hơn 8 MB. Hãy chụp lại hoặc giảm độ phân giải.", "details": {}}}
+{
+  "error": {
+    "code": "FILE_TOO_LARGE",
+    "message": "Ảnh lớn hơn 8 MB. Cô/chú vui lòng chụp lại hoặc chọn ảnh nhẹ hơn nhé.",
+    "details": {}
+  }
+}
 ```
 
-Mã HTTP: 400 dữ liệu sai, 404 không thấy, 413 tệp quá lớn, 415 loại tệp không hỗ trợ, 422 sai schema, 500 lỗi hệ thống. `message` luôn tiếng Việt và nói cách sửa.
+Mã HTTP: `400` dữ liệu sai, `404` không tìm thấy, `413` tệp quá lớn, `415` loại tệp không hỗ trợ, `422` sai schema, `500` lỗi hệ thống.
 
-## 8. Mock và fixture (ngoại lệ cho giai đoạn Nền)
+---
 
-- `MOCK_MODE=true` ở backend: các endpoint đọc trả dữ liệu từ `backend/app/fixtures/*.json`.
-- `VITE_MOCK=true` ở frontend: dùng dữ liệu trong `frontend/src/mocks/` khi backend chưa sẵn sàng.
-- Fixture tối thiểu: 12 giao dịch mẫu (đủ ba trạng thái), 1 `ExtractionResult` mẫu, 1 `Job` mẫu có đủ sự kiện, 1 `Report` mẫu.
-- Đây là dữ liệu giả để FE không phải chờ, không tính là tính năng thật.
-
-## 9. Giao diện Python giữa `backend/` và `agent/`
+## 8. Giao diện Python giữa `backend/` và `agent/`
 
 ```python
 # agent/api.py
@@ -150,35 +227,39 @@ class AgentEvent(BaseModel):
     seq: int
     step: str            # xem mục 6
     status: Literal["running", "ok", "warn", "error"]
-    message: str         # tiếng Việt
+    message: str         # tiếng Việt thân thiện
     data: dict = {}
 
 class AgentContext(BaseModel):
     household_id: str
-    repo: "Repository"   # backend cung cấp, xem bên dưới
+    repo: "Repository"   # backend cung cấp (MemoryRepo hoặc FirestoreRepo)
     settings: "AgentSettings"
 
 async def process_document(doc: DocumentRef, ctx: AgentContext) -> AsyncIterator[AgentEvent]:
-    """Phát từng sự kiện. Sự kiện cuối: step='done',
+    """Phát từng sự kiện qua Gemini Agent. Sự kiện cuối: step='done',
     data={'transaction': <Transaction dict, chưa có id>, 'decision': 'recorded'|'needs_review'}."""
 ```
 
-Backend nhận sự kiện cuối, gán `id`, lưu giao dịch, rồi phát sự kiện `save` và `done`.
-
 ```python
-# Do backend hiện thực, agent chỉ gọi
+# Do backend hiện thực, agent gọi để đối chiếu lịch sử
 class Repository(Protocol):
-    async def find_duplicates(self, household_id: str, counterparty_norm: str | None,
-                              date: str, amount_vnd: int, sha256: str | None) -> list[Transaction]: ...
-    async def price_history(self, household_id: str, item_norm: str,
-                            counterparty_norm: str | None, limit: int = 10) -> list[PricePoint]: ...
+    async def find_duplicates(
+        self,
+        household_id: str,
+        counterparty_norm: str | None,
+        date: str,
+        amount_vnd: int,
+        sha256: str | None,
+        doc_kind: str | None = None,
+    ) -> list[Transaction]: ...
+
+    async def price_history(
+        self,
+        household_id: str,
+        item_norm: str,
+        counterparty_norm: str | None,
+        limit: int = 10,
+    ) -> list[PricePoint]: ...
+
     async def lookup_tax_code(self, tax_code: str) -> TaxCodeInfo | None: ...
 ```
-
-`PricePoint = {item_norm, counterparty_norm, unit_price_vnd, date}`. `TaxCodeInfo = {tax_code, name, status}`. Backend có `MemoryRepo` (test, mock) và `FirestoreRepo` (thật).
-
-## 10. Quy trình đổi contract
-
-1. Người cần đổi mở `docs/CONTRACT.md` và sửa kèm lý do.
-2. Cập nhật `models.py` và `contract.ts` trong cùng commit.
-3. Báo hai người còn lại. Không merge nếu chưa có người xác nhận.
